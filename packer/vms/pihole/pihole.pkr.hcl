@@ -144,24 +144,6 @@ build {
     }
 
     provisioner "file" {
-      source = "files/pihole.conf"
-      destination = "/tmp/pihole.conf"
-    }
-
-    provisioner "file" {
-      source = "files/pihole-updatelists.conf"
-      destination = "/tmp/pihole-updatelists.conf"
-    }
-
-    provisioner "shell" {
-      inline = [
-        "sudo mkdir -p /etc/pihole",
-        "sudo cp /tmp/pihole-updatelists.conf /etc/pihole-updatelists.conf",
-        "sudo cp /tmp/pihole.conf /etc/pihole.conf"
-      ]
-    }
-
-    provisioner "file" {
       source = "./provision.sh"
       destination = "/tmp/provision.sh"
     }
