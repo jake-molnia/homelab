@@ -16,24 +16,9 @@
     "virtio_scsi" 
     "sd_mod" 
     "sr_mod" 
-    # Storage modules
-    "nvme"
-    "ahci"
-    "xhci_pci"
-    "virtio_blk"
   ];
   boot.initrd.kernelModules = [ ];
-  boot.kernelModules = [ 
-    "kvm-intel" 
-    # iSCSI and storage modules
-    "iscsi_tcp"
-    "libiscsi"
-    "scsi_transport_iscsi"
-    "dm-mod"
-    "dm-snapshot"
-    "dm-mirror"
-    "dm-thin-pool"
-  ];
+  boot.kernelModules = [ "kvm-intel" ];
   boot.extraModulePackages = [ ];
 
   # Root filesystem
@@ -42,85 +27,12 @@
       fsType = "ext4";
     };
 
-  # 4tb SSD for Longhorn storage (leave unformatted - Longhorn will manage it)
-  # This assumes your 4th SSD appears as /dev/sdb - adjust as needed
-  # We don't create a filesystem here, Longhorn will manage the raw device
-  # fileSystems."/var/lib/longhorn" = {
-  #   device = "tmpfs";
-  #   fsType = "tmpfs";
-  #   options = [ "size=1G" ];  # Temporary mount point for Longhorn metadata
-  # };
-
   swapDevices = [ ];
 
-  # Configure the 4th SSD for Longhorn (ensure it's available but not mounted)
-  # This creates a udev rule to ensure consistent naming
-  # services.udev.extraRules = ''
-  #   # Longhorn storage disk - adjust SERIAL to match your SSD
-  #   SUBSYSTEM=="block", ATTRS{serial}=="YOUR_SSD_SERIAL_HERE", SYMLINK+="longhorn-disk", OWNER="root", GROUP="root", MODE="0660"
-    
-  #   # Alternative rule using device path if serial is not available
-  #   KERNEL=="sd[b-z]", SUBSYSTEM=="block", ATTRS{size}=="YOUR_SSD_SIZE_IN_SECTORS", SYMLINK+="longhorn-disk-alt", OWNER="root", GROUP="root", MODE="0660"
-  # '';
-
-  # Systemd service to prepare the Longhorn disk
-  # systemd.services.prepare-longhorn-disk = {
-  #   description = "Prepare disk for Longhorn";
-  #   wantedBy = [ "multi-user.target" ];
-  #   before = [ "k3s.service" ];
-  #   serviceConfig = {
-  #     Type = "oneshot";
-  #     RemainAfterExit = true;
-  #     ExecStart = pkgs.writeShellScript "prepare-longhorn-disk" ''
-  #       # Find the 4th disk (adjust device name as needed)
-  #       DISK="/dev/sdb"  # Change this to match your 4th SSD
-        
-  #       if [ -b "$DISK" ]; then
-  #         echo "Found Longhorn disk at $DISK"
-          
-  #         # Check if disk has any partitions
-  #         if ! ${pkgs.util-linux}/bin/lsblk "$DISK" | grep -q part; then
-  #           echo "Disk appears to be unpartitioned, good for Longhorn"
-  #         else
-  #           echo "Warning: Disk has partitions, Longhorn prefers raw disks"
-  #         fi
-          
-  #         # Set permissions for Longhorn
-  #         chmod 660 "$DISK"
-          
-  #         # Create a symlink for easier reference
-  #         ln -sf "$DISK" /dev/longhorn-storage
-          
-  #       else
-  #         echo "Warning: Longhorn disk $DISK not found"
-  #         exit 1
-  #       fi
-  #     '';
-  #   };
-  # };
-
-  # Enables DHCP on each ethernet and wireless interface. In case of scripted networking
-  # (the default) this is the recommended approach. When using systemd-networkd it's
-  # still possible to use this option, but it's recommended to use it in conjunction
-  # with explicit per-interface declarations with `networking.interfaces.<interface>.useDHCP`.
   networking.useDHCP = lib.mkDefault false;
-  # networking.interfaces.ens18.useDHCP = lib.mkDefault true;
 
   nixpkgs.hostPlatform = lib.mkDefault "x86_64-linux";
 
-  # Hardware optimizations for storage
-  services.fstrim.enable = true;  # Enable SSD TRIM
-  
-  # Storage-specific kernel parameters
-  boot.kernel.sysctl = {
-    # Optimize for storage workloads
-    "vm.dirty_ratio" = 15;
-    "vm.dirty_background_ratio" = 5;
-    "vm.swappiness" = 10;
-    # Network optimizations for storage traffic
-    "net.core.rmem_max" = 16777216;
-    "net.core.wmem_max" = 16777216;
-    "net.ipv4.tcp_rmem" = "4096 12582912 16777216";
-    "net.ipv4.tcp_wmem" = "4096 12582912 16777216";
-  };
+  # Enable SSD TRIM
+  services.fstrim.enable = true;
 }
