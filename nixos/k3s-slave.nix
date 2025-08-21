@@ -1,4 +1,3 @@
-# nixos/k3s-master.nix - Simple k3s master node configuration
 { config, pkgs, ... }:
 
 {
@@ -6,7 +5,6 @@
   networking = {
     hostName = "k3s-slave";
     interfaces.ens18 = {
-      # Adjust interface name as needed
       ipv4.addresses = [{
         address = "10.10.10.74";
         prefixLength = 24;
@@ -14,22 +12,24 @@
     };
   };
 
-  # Simple k3s master configuration
+  # k3s agent configuration - this will join the master
   services.k3s = {
     enable = true;
-    role = "server";
+    role = "agent";
+    token = "K1045f87291b4b664f8ad2e69e57a3106d724c04443b2d33b3202f56b58695ebd7c::server:1234567890abcdef";
+    serverAddr = "https://10.10.10.37:6443";
     extraFlags = toString [
-      "--cluster-init"
-      "--write-kubeconfig-mode=644"
+      "--with-node-id" # Add unique node ID to avoid hostname conflicts
     ];
   };
 
-  # Generate a token for the cluster
-  environment.etc."rancher/k3s/token".text = "K10f8a7b2c9d4e5f6789abcdef123456::server:1234567890abcdef";
-
-  # Additional packages for master node
+  # Basic packages for worker node
   environment.systemPackages = with pkgs; [
     kubectl
-    kubernetes-helm
+  ];
+
+  # Additional firewall rules for k3s agent
+  networking.firewall.allowedTCPPorts = [
+    10250 # kubelet API
   ];
 }
