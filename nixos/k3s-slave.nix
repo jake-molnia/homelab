@@ -4,11 +4,11 @@
 {
   # Hostname and networking
   networking = {
-    hostName = "k3s-master";
+    hostName = "k3s-slave";
     interfaces.ens18 = {
       # Adjust interface name as needed
       ipv4.addresses = [{
-        address = "10.10.10.110";
+        address = "10.10.10.74";
         prefixLength = 24;
       }];
     };

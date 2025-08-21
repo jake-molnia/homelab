@@ -4,10 +4,10 @@
 {
   # Basic system configuration
   system.stateVersion = "25.05";
-  
+
   # Enable flakes
   nix.settings.experimental-features = [ "nix-command" "flakes" ];
-  
+
   # Timezone
   time.timeZone = "America/New_York";
 
@@ -26,7 +26,7 @@
   };
 
   users.users.root.openssh.authorizedKeys.keys = [
-    "ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBD/qDANIh2fQzUGgODMfrJLKzR4qPgqME5gyaz0Z1JSODU6Fw+m3umLrBkNBR5BokZJ6O9ZHhV8R86UEsspbD9Q= Public key for PIV Authentication"
+    "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIFRv1Kc600J9AoH8/Ecsu+yJifKaIPqC3OhVBmlrNEU4 homelab admin"
   ];
 
   # Basic packages
@@ -52,12 +52,12 @@
   networking.firewall = {
     enable = true;
     allowedTCPPorts = [
-      22    # SSH
-      6443  # k3s API server
+      22 # SSH
+      6443 # k3s API server
       10250 # kubelet
     ];
     allowedUDPPorts = [
-      8472  # flannel VXLAN
+      8472 # flannel VXLAN
     ];
   };
 
