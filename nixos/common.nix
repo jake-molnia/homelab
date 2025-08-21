@@ -67,11 +67,11 @@
     # NFS client support
     rpcbind.enable = true;
     
-    # iSCSI initiator for Longhorn
-    openiscsi = {
-      enable = true;
-      name = "iqn.2020-04.com.homelab:${config.networking.hostName}";
-    };
+    # # iSCSI initiator for Longhorn
+    # openiscsi = {
+    #   enable = true;
+    #   name = "iqn.2020-04.com.homelab:${config.networking.hostName}";
+    # };
   };
 
   # Network configuration common to both nodes
@@ -109,9 +109,9 @@
 
   # System directories for storage
   systemd.tmpfiles.rules = [
-    "d /mnt/nfs 0755 root root -"
-    "d /mnt/nfs/shared 0755 root root -"
-    "d /mnt/nfs/backups 0755 root root -"
-    "d /var/lib/longhorn 0755 root root -"
+    # "d /mnt/nfs 0755 root root -"
+    # "d /mnt/nfs/shared 0755 root root -"
+    # "d /mnt/nfs/backups 0755 root root -"
+    # "d /var/lib/longhorn 0755 root root -"
   ];
 }
