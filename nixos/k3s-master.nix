@@ -1,6 +1,27 @@
 # nixos/k3s-master.nix - k3s master node configuration
-{ config, pkgs, ... }:
+{ config, pkgs, lib, ... }:
 
+let
+  # Automatically discover all YAML files in the kubernetes directory
+  kubernetesDir = ../kubernetes;
+  manifestFiles = builtins.readDir kubernetesDir;
+
+  # Filter to only include .yaml and .yml files
+  yamlFiles = lib.filterAttrs
+    (name: type:
+      type == "regular" &&
+      (lib.hasSuffix ".yaml" name || lib.hasSuffix ".yml" name)
+    )
+    manifestFiles;
+
+  # Generate systemd tmpfiles rules for each YAML file
+  manifestRules = lib.mapAttrsToList
+    (fileName: _:
+      "C /var/lib/rancher/k3s/server/manifests/${fileName} 0644 root root - ${kubernetesDir}/${fileName}"
+    )
+    yamlFiles;
+
+in
 {
   # Hostname and networking
   networking = {
@@ -18,14 +39,18 @@
   services.k3s = {
     enable = true;
     role = "server";
-    # Remove the token line - let k3s generate one automatically
     extraFlags = toString [
       "--cluster-init"
       "--write-kubeconfig-mode=644"
-      "--tls-san=10.10.10.37" # Add this for proper certificate handling
-      "--with-node-id" # Add unique node ID to avoid hostname conflicts
+      "--tls-san=10.10.10.37"
+      "--with-node-id"
     ];
   };
+
+  # Automatically copy all YAML files from kubernetes/ directory
+  systemd.tmpfiles.rules = [
+    "d /var/lib/rancher/k3s/server/manifests 0755 root root -"
+  ] ++ manifestRules;
 
   # Additional packages for master node
   environment.systemPackages = with pkgs; [
