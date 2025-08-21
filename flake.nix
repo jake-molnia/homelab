@@ -26,12 +26,11 @@
           ./nixos/k3s-master.nix
           ./nixos/hardware-configurations/k3s-master.nix
         ];
-        # TODO:  for now just one machine
-        #k3s-slave = mkNixosSystem [
-        #  ./nixos/common.nix
-        #  ./nixos/k3s-slave.nix
-        #  ./nixos/hardware-configurations/k3s-slave.nix
-        #];
+        k3s-slave = mkNixosSystem [
+          ./nixos/common.nix
+          ./nixos/k3s-slave.nix
+          ./nixos/hardware-configurations/k3s-slave.nix
+        ];
       };
 
     in
@@ -43,10 +42,10 @@
       deploy = {
         nodes = {
           "k3s-master" = {
-            hostname = "10.10.10.37";  # Your master IP
-            sshUser = "root";  # SSH user for deployment
+            hostname = "10.10.10.37"; # Your master IP
+            sshUser = "root"; # SSH user for deployment
             remoteBuild = true;
-            sshOpts = ["-i" "/Users/jake/.ssh/keys/id_homelab_admin"];
+            sshOpts = [ "-i" "/Users/jake/.ssh/keys/id_homelab_admin" ];
             profiles = {
               system = {
                 user = "root";
@@ -55,17 +54,18 @@
             };
           };
 
-          #"k3s-slave" = {
-          #  hostname = "10.10.10.111";  # FIXME: (change as needed)
-          #  sshUser = "root";
-          #  remoteBuild = true;
-          #  profiles = {
-          #    system = {
-          #      user = "root";
-          #      path = deploy-rs.lib.${serverSystem}.activate.nixos machines.k3s-slave;
-          #    };
-          #  };
-          #};
+          "k3s-slave" = {
+            hostname = "10.10.10.74";
+            sshUser = "root";
+            remoteBuild = true;
+            sshOpts = [ "-i" "/Users/jake/.ssh/keys/id_homelab_admin" ];
+            profiles = {
+              system = {
+                user = "root";
+                path = deploy-rs.lib.${serverSystem}.activate.nixos machines.k3s-slave;
+              };
+            };
+          };
         };
       };
 
@@ -85,7 +85,7 @@
           default = let pkgs = nixpkgs.legacyPackages.x86_64-linux; in pkgs.mkShell {
             packages = [
               pkgs.just
-              pkgs.kubectl  # Add kubectl for k3s management
+              pkgs.kubectl # Add kubectl for k3s management
               deploy-rs.packages.x86_64-linux.deploy-rs
             ];
           };
