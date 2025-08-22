@@ -39,6 +39,7 @@
     vim
     spice-vdagent
     kubectl
+    pciutils
   ];
 
   # Network configuration
