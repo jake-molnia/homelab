@@ -29,7 +29,7 @@ in
     interfaces.ens18 = {
       # Adjust interface name as needed
       ipv4.addresses = [{
-        address = "10.10.10.37"; # Fixed to match flake.nix
+        address = "10.10.10.108"; # Fixed to match flake.nix
         prefixLength = 24;
       }];
     };
