@@ -16,8 +16,8 @@
   services.k3s = {
     enable = true;
     role = "agent";
-    token = "K108bdf8558eeb607a5c630e244efe3fa49e1fc0af4669c4abb83125a9e21ae6227::server:24cfd6ef0a9ced2ab8773f665d2bdb66";
-    serverAddr = "https://10.10.10.108:6443";
+    token = "K1044a39f6549970b39d8709589e11b925c89c43be2bac3ebdaf0cea0672c492f09::server:6a9350bf0df297f57a05881844198408";
+    serverAddr = "https://10.10.10.134:6443";
     extraFlags = toString [
       "--with-node-id" # Add unique node ID to avoid hostname conflicts
     ];
