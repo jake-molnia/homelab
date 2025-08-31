@@ -2,6 +2,20 @@
 {
   description = "My Homelab";
 
+  # Nix configuration for better build performance
+  nixConfig = {
+    # Use all available CPU cores for building
+    max-jobs = "auto";
+    cores = 0; # 0 means use all available cores
+
+    # Increase download buffer for better network performance
+    download-buffer-size = 268435456; # 256MB buffer
+
+    # Additional performance optimizations
+    keep-outputs = true;
+    keep-derivations = true;
+  };
+
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
     deploy-rs.url = "github:serokell/deploy-rs";
