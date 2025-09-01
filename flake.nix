@@ -54,9 +54,11 @@
 
       # --- Deployment Configuration ---
       deploy = {
+        # magicRollback = false;
+        # autoRollback = false;
         nodes = {
           "k3s-master" = {
-            hostname = "10.10.10.134"; # Your master IP
+            hostname = "10.10.10.50";
             sshUser = "root"; # SSH user for deployment
             remoteBuild = true;
             sshOpts = [ "-i" "/Users/jake/.ssh/keys/id_homelab_admin" ];
@@ -69,7 +71,7 @@
           };
 
           "k3s-slave" = {
-            hostname = "10.10.10.74";
+            hostname = "10.10.10.51";
             sshUser = "root";
             remoteBuild = true;
             sshOpts = [ "-i" "/Users/jake/.ssh/keys/id_homelab_admin" ];

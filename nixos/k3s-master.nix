@@ -29,7 +29,7 @@ in
     interfaces.ens18 = {
       # Adjust interface name as needed
       ipv4.addresses = [{
-        address = "10.10.10.108"; # Fixed to match flake.nix
+        address = "10.10.10.50"; # Static IP for k3s-master
         prefixLength = 24;
       }];
     };
@@ -42,7 +42,7 @@ in
     extraFlags = toString [
       "--cluster-init"
       "--write-kubeconfig-mode=644"
-      "--tls-san=10.10.10.37"
+      "--tls-san=10.10.10.50"
       "--with-node-id"
     ];
   };
