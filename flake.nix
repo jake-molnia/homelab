@@ -54,8 +54,6 @@
 
       # --- Deployment Configuration ---
       deploy = {
-        # magicRollback = false;
-        # autoRollback = false;
         nodes = {
           "k3s-master" = {
             hostname = "10.10.10.50";
@@ -107,7 +105,7 @@
           };
         };
       };
-      # FIXME: make this a automated thing using github actions
-      #checks = builtins.mapAttrs (system: deployLib: deployLib.deployChecks self.deploy) deploy-rs.lib;
+      # Add checks for x86_64-linux to avoid flake warnings
+      checks.x86_64-linux = deploy-rs.lib.x86_64-linux.deployChecks self.deploy;
     };
 }

@@ -1,7 +1,12 @@
 # nixos/common.nix - Simplified configuration shared by k3s nodes
+
 { config, pkgs, ... }:
 
 {
+  # Optimize Nix builds for all cores and large download buffer
+  nix.settings.max-jobs = "auto";
+  nix.settings.cores = 0;
+  nix.settings.download-buffer-size = 268435456;
   # Basic system configuration
   system.stateVersion = "25.05";
 
