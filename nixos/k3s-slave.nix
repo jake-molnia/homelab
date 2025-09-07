@@ -1,14 +1,16 @@
 { config, pkgs, ... }:
 
+let
+  vars = import ./variables.nix;
+in
 {
-  # Import environment variables
-  imports = [ ./util/load-env.nix ];
+  # K3s slave configuration
   # Hostname and networking
   networking = {
-    hostName = config.env.K3S_SLAVE_HOSTNAME;
+    hostName = vars.networking.slave.hostname;
     interfaces.ens18 = {
       ipv4.addresses = [{
-        address = config.env.K3S_SLAVE_IP;
+        address = vars.networking.slave.ip;
         prefixLength = 24;
       }];
     };
@@ -16,7 +18,7 @@
 
   # Mount the NVMe drive at /data
   fileSystems."/data" = {
-    device = "/dev/disk/by-uuid/${config.env.K3S_SLAVE_NVME_UUID}";
+    device = "/dev/disk/by-uuid/${vars.networking.slave.nvmeUuid}";
     fsType = "ext4";
   };
 
@@ -24,8 +26,8 @@
   services.k3s = {
     enable = true;
     role = "agent";
-    token = config.env.K3S_TOKEN;
-    serverAddr = "https://${config.env.K3S_MASTER_IP}:6443";
+    token = vars.k3s.token;
+    serverAddr = "https://${vars.networking.master.ip}:6443";
     extraFlags = toString [
       "--with-node-id" # Add unique node ID to avoid hostname conflicts
     ];
