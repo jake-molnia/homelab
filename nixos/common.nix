@@ -38,7 +38,7 @@
   };
 
   users.users.root.openssh.authorizedKeys.keys = [
-    "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIFRv1Kc600J9AoH8/Ecsu+yJifKaIPqC3OhVBmlrNEU4 homelab admin"
+    config.env.SSH_AUTHORIZED_KEY
   ];
 
   # Basic packages
@@ -55,11 +55,14 @@
     nvme-cli
   ];
 
+  # Import environment variables
+  imports = [ ./load-env.nix ];
+
   # Network configuration
   networking = {
     useDHCP = false;
-    defaultGateway = "10.10.10.1";
-    nameservers = [ "1.1.1.1" "8.8.8.8" ];
+    defaultGateway = config.env.NETWORK_GATEWAY;
+    nameservers = builtins.fromJSON config.env.DNS_SERVERS;
   };
 
   # Firewall rules for k3s

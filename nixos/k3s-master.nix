@@ -23,13 +23,15 @@ let
 
 in
 {
+  # Import environment variables
+  imports = [ ./util/load-env.nix ];
   # Hostname and networking
   networking = {
-    hostName = "k3s-master";
+    hostName = config.env.K3S_MASTER_HOSTNAME;
     interfaces.ens18 = {
       # Adjust interface name as needed
       ipv4.addresses = [{
-        address = "10.10.10.50"; # Static IP for k3s-master
+        address = config.env.K3S_MASTER_IP;
         prefixLength = 24;
       }];
     };
@@ -37,7 +39,7 @@ in
 
   # Mount the NVMe drive at /data
   fileSystems."/data" = {
-    device = "/dev/disk/by-uuid/4e4dbabb-14f9-4072-bd32-6fca86dfaaf2";
+    device = "/dev/disk/by-uuid/${config.env.K3S_MASTER_NVME_UUID}";
     fsType = "ext4";
   };
 
