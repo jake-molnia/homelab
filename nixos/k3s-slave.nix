@@ -12,6 +12,12 @@
     };
   };
 
+  # Mount the NVMe drive at /data
+  fileSystems."/data" = {
+    device = "/dev/disk/by-uuid/90ec5d0f-85e7-4f2d-9f0a-0b019abc4793";
+    fsType = "ext4";
+  };
+
   # k3s agent configuration - this will join the master
   services.k3s = {
     enable = true;

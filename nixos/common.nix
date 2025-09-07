@@ -20,6 +20,13 @@
   boot.loader.grub.enable = true;
   boot.loader.grub.device = "/dev/sda";
 
+  services.qemuGuest.enable = true;
+
+  boot.kernelParams = [
+    "nvme_core.default_ps_max_latency_us=0" # Disable power saving
+    "pcie_aspm=off" # Disable PCIe power management
+  ];
+
   # SSH configuration
   services.openssh = {
     enable = true;
@@ -45,6 +52,7 @@
     spice-vdagent
     kubectl
     pciutils
+    nvme-cli
   ];
 
   # Network configuration
