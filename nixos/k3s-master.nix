@@ -2,6 +2,7 @@
 { config, pkgs, lib, ... }:
 
 let
+  vars = import ./variables.nix;
   # Automatically discover all YAML files in the kubernetes directory
   kubernetesDir = ../kubernetes;
   manifestFiles = builtins.readDir kubernetesDir;
@@ -23,15 +24,14 @@ let
 
 in
 {
-  # Import environment variables
-  imports = [ ./util/load-env.nix ];
+  # Hostname and networking configuration
   # Hostname and networking
   networking = {
-    hostName = config.env.K3S_MASTER_HOSTNAME;
+    hostName = vars.networking.master.hostname;
     interfaces.ens18 = {
       # Adjust interface name as needed
       ipv4.addresses = [{
-        address = config.env.K3S_MASTER_IP;
+        address = vars.networking.master.ip;
         prefixLength = 24;
       }];
     };
@@ -39,7 +39,7 @@ in
 
   # Mount the NVMe drive at /data
   fileSystems."/data" = {
-    device = "/dev/disk/by-uuid/${config.env.K3S_MASTER_NVME_UUID}";
+    device = "/dev/disk/by-uuid/${vars.networking.master.nvmeUuid}";
     fsType = "ext4";
   };
 

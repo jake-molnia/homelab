@@ -2,6 +2,10 @@
 
 { config, pkgs, ... }:
 
+let
+  vars = import ./variables.nix;
+in
+
 {
   # Optimize Nix builds for all cores and large download buffer
   nix.settings.max-jobs = "auto";
@@ -38,7 +42,7 @@
   };
 
   users.users.root.openssh.authorizedKeys.keys = [
-    config.env.SSH_AUTHORIZED_KEY
+    vars.ssh.authorizedKey
   ];
 
   # Basic packages
@@ -55,14 +59,11 @@
     nvme-cli
   ];
 
-  # Import environment variables
-  imports = [ ./load-env.nix ];
-
   # Network configuration
   networking = {
     useDHCP = false;
-    defaultGateway = config.env.NETWORK_GATEWAY;
-    nameservers = builtins.fromJSON config.env.DNS_SERVERS;
+    defaultGateway = vars.networking.gateway;
+    nameservers = vars.networking.dns;
   };
 
   # Firewall rules for k3s
