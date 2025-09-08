@@ -1,0 +1,123 @@
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: qbittorrent-config-pvc
+  namespace: media
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: longhorn
+  resources:
+    requests:
+      storage: 200Gi
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: qbittorrent
+  namespace: media
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: qbittorrent
+  template:
+    metadata:
+      labels:
+        app: qbittorrent
+    spec:
+      securityContext:
+        fsGroup: 1000
+      volumes:
+        - name: config
+          persistentVolumeClaim:
+            claimName: qbittorrent-config-pvc
+        - name: media
+          persistentVolumeClaim:
+            claimName: media-shared-nfs-pvc
+      containers:
+        - name: qbittorrent
+          image: lscr.io/linuxserver/qbittorrent:latest
+          ports:
+            - containerPort: 8080
+              name: http
+            - containerPort: 6881
+              name: torrent-tcp
+              protocol: TCP
+            - containerPort: 6881
+              name: torrent-udp
+              protocol: UDP
+          env:
+            - name: PUID
+              value: "1000"
+            - name: PGID
+              value: "1000"
+            - name: TZ
+              value: "America/New_York"
+            - name: WEBUI_PORT
+              value: "8080"
+          volumeMounts:
+            - name: config
+              mountPath: /config
+            - name: media
+              mountPath: /media
+          resources:
+            limits:
+              cpu: "2"
+              memory: "2Gi"
+            requests:
+              cpu: "200m"
+              memory: "512Mi"
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: qbittorrent
+  namespace: media
+spec:
+  selector:
+    app: qbittorrent
+  ports:
+    - protocol: TCP
+      port: 8080
+      targetPort: http
+      name: http
+    - protocol: TCP
+      port: 6881
+      targetPort: torrent-tcp
+      name: torrent-tcp
+    - protocol: UDP
+      port: 6881
+      targetPort: torrent-udp
+      name: torrent-udp
+  type: ClusterIP
+
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: qbittorrent
+  namespace: media
+  annotations:
+    traefik.ingress.kubernetes.io/router.entrypoints: websecure
+    traefik.ingress.kubernetes.io/router.tls: "true"
+    cert-manager.io/cluster-issuer: "selfsigned-issuer"
+spec:
+  tls:
+    - hosts:
+        - qbittorrent.homelab.local
+      secretName: qbittorrent-tls
+  rules:
+    - host: qbittorrent.homelab.local
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: qbittorrent
+                port:
+                  number: 8080
