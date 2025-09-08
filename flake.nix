@@ -91,6 +91,7 @@
               pkgs.just
               pkgs.git
               pkgs.gh
+              pkgs.kubectl
               deploy-rs.packages.aarch64-darwin.deploy-rs
             ];
           };
