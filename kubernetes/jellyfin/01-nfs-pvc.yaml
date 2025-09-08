@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: media-nfs-pvc
+  namespace: jellyfin
+spec:
+  accessModes:
+    - ReadOnlyMany
+  volumeMode: Filesystem
+  storageClassName: ""
+  resources:
+    requests:
+      storage: 1Ti
+  volumeName: media-nfs-pv

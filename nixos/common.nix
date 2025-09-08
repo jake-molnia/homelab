@@ -40,6 +40,9 @@ in
     "pcie_aspm=off" # Disable PCIe power management
   ];
 
+  # Enable NFS support
+  boot.supportedFilesystems = [ "nfs" ];
+
   # Kernel modules configuration
   boot.initrd.availableKernelModules = [
     "ata_piix"
@@ -57,6 +60,8 @@ in
     "iscsi_tcp" # iSCSI support for Longhorn
     "dm-snapshot" # Device mapper for snapshots
     "dm-thin-pool" # Thin provisioning
+    "nfs" # NFS support
+    "nfsv3" # NFSv3 support
   ];
   boot.extraModulePackages = [ ];
 
@@ -65,6 +70,7 @@ in
       enable = true;
       name = "longhorn-${config.networking.hostName}";
     };
+    rpcbind.enable = true; # needed for NFS client
     # SSH configuration
     openssh = {
       enable = true;
@@ -95,6 +101,7 @@ in
     openiscsi # Required for Longhorn storage
     util-linux # For filesystem tools
     e2fsprogs # For ext4 tools
+    nfs-utils # For NFS support
   ];
 
   # Network configuration
