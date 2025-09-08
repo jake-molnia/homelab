@@ -1,12 +1,21 @@
 # nixos/common.nix - Simplified configuration shared by k3s nodes
 
-{ config, pkgs, ... }:
+{ config, pkgs, lib, modulesPath, ... }:
 
 let
   vars = import ./variables.nix;
 in
-
 {
+  imports = [
+    (modulesPath + "/profiles/qemu-guest.nix")
+  ];
+
+  # System platform
+  nixpkgs.hostPlatform = lib.mkDefault "x86_64-linux";
+
+  # No swap devices
+  swapDevices = [ ];
+
   # Optimize Nix builds for all cores and large download buffer
   nix.settings.max-jobs = "auto";
   nix.settings.cores = 0;
@@ -31,13 +40,39 @@ in
     "pcie_aspm=off" # Disable PCIe power management
   ];
 
-  # SSH configuration
-  services.openssh = {
-    enable = true;
-    settings = {
-      PermitRootLogin = "yes";
-      PasswordAuthentication = true;
-      PermitEmptyPasswords = false;
+  # Kernel modules configuration
+  boot.initrd.availableKernelModules = [
+    "ata_piix"
+    "uhci_hcd"
+    "virtio_pci"
+    "virtio_scsi"
+    "sd_mod"
+    "sr_mod"
+    "nvme"
+  ];
+  boot.initrd.kernelModules = [ ];
+  boot.kernelModules = [
+    "kvm-intel"
+    "virtio_balloon"
+    "iscsi_tcp" # iSCSI support for Longhorn
+    "dm-snapshot" # Device mapper for snapshots
+    "dm-thin-pool" # Thin provisioning
+  ];
+  boot.extraModulePackages = [ ];
+
+  services = {
+    openiscsi = {
+      enable = true;
+      name = "longhorn-${config.networking.hostName}";
+    };
+    # SSH configuration
+    openssh = {
+      enable = true;
+      settings = {
+        PermitRootLogin = "yes";
+        PasswordAuthentication = false;
+        PermitEmptyPasswords = false;
+      };
     };
   };
 
@@ -57,6 +92,9 @@ in
     kubectl
     pciutils
     nvme-cli
+    openiscsi # Required for Longhorn storage
+    util-linux # For filesystem tools
+    e2fsprogs # For ext4 tools
   ];
 
   # Network configuration
@@ -73,6 +111,11 @@ in
       22 # SSH
       6443 # k3s API server
       10250 # kubelet
+      9500
+      9501
+      9502
+      9503
+      9504 # Longhorn communication ports
     ];
     allowedUDPPorts = [
       8472 # flannel VXLAN
@@ -81,4 +124,23 @@ in
 
   # Docker for k3s
   virtualisation.docker.enable = true;
+
+  systemd.tmpfiles.rules = [
+    "d /data/longhorn 0755 root root -"
+  ];
+
+  # Ensure both iSCSI services start automatically
+  systemd.services.iscsid.enable = true;
+  systemd.services.iscsi.enable = true;
+  systemd.services.iscsid.wantedBy = [ "multi-user.target" ];
+  systemd.services.iscsi.wantedBy = [ "multi-user.target" ];
+
+  # Create symlinks for Longhorn to find iSCSI tools in expected locations
+  system.activationScripts.longhorn-iscsi-symlinks = ''
+    mkdir -p /usr/bin /sbin /bin
+    ln -sf /run/current-system/sw/bin/iscsiadm /usr/bin/iscsiadm
+    ln -sf /run/current-system/sw/bin/iscsiadm /sbin/iscsiadm
+    ln -sf /run/current-system/sw/bin/iscsiadm /bin/iscsiadm
+    ln -sf /run/current-system/sw/bin/nsenter /usr/bin/nsenter
+  '';
 }
