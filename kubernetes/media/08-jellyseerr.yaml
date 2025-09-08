@@ -1,0 +1,104 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: jellyseerr
+  namespace: media
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: jellyseerr
+  template:
+    metadata:
+      labels:
+        app: jellyseerr
+    spec:
+      securityContext:
+        fsGroup: 1000
+      volumes:
+        - name: config
+          persistentVolumeClaim:
+            claimName: jellyseerr-config
+        - name: media
+          persistentVolumeClaim:
+            claimName: media-shared-nfs-pvc
+      containers:
+        - name: jellyseerr
+          image: ghcr.io/fallenbagel/jellyseerr:latest
+          ports:
+            - containerPort: 5055
+              name: http
+          env:
+            - name: PUID
+              value: "1000"
+            - name: PGID
+              value: "1000"
+            - name: TZ
+              value: "America/New_York"
+            - name: UMASK
+              value: "002"
+          volumeMounts:
+            - name: config
+              mountPath: /app/config
+            - name: media
+              mountPath: /media
+          resources:
+            limits:
+              cpu: "2"
+              memory: "1Gi"
+            requests:
+              cpu: "200m"
+              memory: "256Mi"
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: jellyseerr-config
+  namespace: media
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: longhorn
+  resources:
+    requests:
+      storage: 1Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: jellyseerr
+  namespace: media
+spec:
+  selector:
+    app: jellyseerr
+  ports:
+    - protocol: TCP
+      port: 5055
+      targetPort: http
+  type: ClusterIP
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: jellyseerr
+  namespace: media
+  annotations:
+    traefik.ingress.kubernetes.io/router.entrypoints: websecure
+    traefik.ingress.kubernetes.io/router.tls: "true"
+    cert-manager.io/cluster-issuer: "selfsigned-issuer"
+spec:
+  tls:
+    - hosts:
+        - jellyseerr.homelab.local
+      secretName: jellyseerr-tls
+  rules:
+    - host: jellyseerr.homelab.local
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: jellyseerr
+                port:
+                  number: 5055
