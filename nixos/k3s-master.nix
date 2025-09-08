@@ -3,25 +3,6 @@
 
 let
   vars = import ./variables.nix;
-  # Automatically discover all YAML files in the kubernetes directory
-  kubernetesDir = ../kubernetes;
-  manifestFiles = builtins.readDir kubernetesDir;
-
-  # Filter to only include .yaml and .yml files
-  yamlFiles = lib.filterAttrs
-    (name: type:
-      type == "regular" &&
-      (lib.hasSuffix ".yaml" name || lib.hasSuffix ".yml" name)
-    )
-    manifestFiles;
-
-  # Generate systemd tmpfiles rules for each YAML file
-  manifestRules = lib.mapAttrsToList
-    (fileName: _:
-      "C /var/lib/rancher/k3s/server/manifests/${fileName} 0644 root root - ${kubernetesDir}/${fileName}"
-    )
-    yamlFiles;
-
 in
 {
   # Hostname and networking configuration
@@ -56,15 +37,8 @@ in
     ];
   };
 
-  # Automatically copy all YAML files from kubernetes/ directory
-  systemd.tmpfiles.rules = [
-    "d /var/lib/rancher/k3s/server/manifests 0755 root root -"
-  ] ++ manifestRules;
-
   # Additional packages for master node
   environment.systemPackages = with pkgs; [
-    kubectl
-    kubernetes-helm
   ];
 
   # Additional firewall rules for k3s master
