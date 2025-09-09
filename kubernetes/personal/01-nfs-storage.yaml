@@ -1,0 +1,155 @@
+---
+# Documents NFS Storage for Nextcloud
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: documents-nfs-pv
+spec:
+  capacity:
+    storage: 1Ti
+  volumeMode: Filesystem
+  accessModes:
+    - ReadWriteMany
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: ""
+  mountOptions:
+    - nfsvers=3
+    - tcp
+    - noatime
+    - nodiratime
+  nfs:
+    server: 10.10.10.11
+    path: /mnt/data/documents
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: documents-nfs-pvc
+  namespace: personal
+spec:
+  accessModes:
+    - ReadWriteMany
+  volumeMode: Filesystem
+  storageClassName: ""
+  resources:
+    requests:
+      storage: 1Ti
+  volumeName: documents-nfs-pv
+
+---
+# ISO Library NFS Storage for Nextcloud
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: iso-library-nfs-pv
+spec:
+  capacity:
+    storage: 1Ti
+  volumeMode: Filesystem
+  accessModes:
+    - ReadWriteMany
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: ""
+  mountOptions:
+    - nfsvers=3
+    - tcp
+    - noatime
+    - nodiratime
+  nfs:
+    server: 10.10.10.11
+    path: /mnt/data/iso-library
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: iso-library-nfs-pvc
+  namespace: personal
+spec:
+  accessModes:
+    - ReadWriteMany
+  volumeMode: Filesystem
+  storageClassName: ""
+  resources:
+    requests:
+      storage: 1Ti
+  volumeName: iso-library-nfs-pv
+
+---
+# Photos NFS Storage for Nextcloud and Immich
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: photos-nfs-pv
+spec:
+  capacity:
+    storage: 1Ti
+  volumeMode: Filesystem
+  accessModes:
+    - ReadWriteMany
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: ""
+  mountOptions:
+    - nfsvers=3
+    - tcp
+    - noatime
+    - nodiratime
+  nfs:
+    server: 10.10.10.11
+    path: /mnt/data/photos
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: photos-nfs-pvc
+  namespace: personal
+spec:
+  accessModes:
+    - ReadWriteMany
+  volumeMode: Filesystem
+  storageClassName: ""
+  resources:
+    requests:
+      storage: 1Ti
+  volumeName: photos-nfs-pv
+
+---
+# Media NFS Storage for Nextcloud (reference to existing media)
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: media-personal-nfs-pv
+spec:
+  capacity:
+    storage: 1Ti
+  volumeMode: Filesystem
+  accessModes:
+    - ReadWriteMany
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: ""
+  mountOptions:
+    - nfsvers=3
+    - tcp
+    - noatime
+    - nodiratime
+  nfs:
+    server: 10.10.10.11
+    path: /mnt/data/media
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: media-personal-nfs-pvc
+  namespace: personal
+spec:
+  accessModes:
+    - ReadWriteMany
+  volumeMode: Filesystem
+  storageClassName: ""
+  resources:
+    requests:
+      storage: 1Ti
+  volumeName: media-personal-nfs-pv
