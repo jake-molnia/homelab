@@ -1,0 +1,19 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: longhorn-extras
+  namespace: longhorn-system
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/jake-molnia/homelab
+    targetRevision: HEAD
+    path: manifests/longhorn
+  destination:
+    server: https://kubernetes.default.svc
+    # The resources will be deployed into this namespace
+    namespace: longhorn-system
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true

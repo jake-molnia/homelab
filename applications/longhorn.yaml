@@ -1,16 +1,62 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: longhorn
-  namespace: argocd
+  # IMPORTANT: This application resource lives in the longhorn-system namespace
+  name: longhorn-chart
+  namespace: longhorn-system
 spec:
   project: default
   source:
-    repoURL: https://github.com/jake-molnia/homelab
-    targetRevision: HEAD
-    path: manifests/longhorn
+    repoURL: https://charts.longhorn.io
+    chart: longhorn
+    targetRevision: 1.7.1
+    helm:
+      # All your custom Helm values are defined here
+      values: |
+        defaultSettings:
+          defaultDataPath: /data/longhorn
+          createDefaultDiskLabeledNodes: true
+          backupTarget: ""
+          backupTargetCredentialSecret: ""
+          storageOverProvisioningPercentage: 100
+          storageMinimalAvailablePercentage: 25
+          upgradeChecker: false
+          nodeDownPodDeletionPolicy: delete-both-statefulset-and-deployment-pod
+          defaultReplicaCount: 2
+          defaultLonghornStaticStorageClass: longhorn
+        longhornManager:
+          resources:
+            limits:
+              cpu: 1000m
+              memory: 512Mi
+            requests:
+              cpu: 100m
+              memory: 128Mi
+        longhornDriver:
+          resources:
+            limits:
+              cpu: 1000m
+              memory: 512Mi
+            requests:
+              cpu: 100m
+              memory: 128Mi
+        longhornUI:
+          resources:
+            limits:
+              cpu: 1000m
+              memory: 512Mi
+            requests:
+              cpu: 100m
+              memory: 128Mi
+        csi:
+          kubeletRootDir: /var/lib/kubelet
+          attacherReplicaCount: 1
+          provisionerReplicaCount: 1
+          resizerReplicaCount: 1
+          snapshotterReplicaCount: 1
   destination:
     server: https://kubernetes.default.svc
+    # This ensures the Helm chart resources are deployed into this namespace
     namespace: longhorn-system
   syncPolicy:
     automated:
