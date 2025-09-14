@@ -87,17 +87,13 @@ kind: Ingress
 metadata:
   name: vaultwarden
   namespace: personal
-  annotations:
-    traefik.ingress.kubernetes.io/router.entrypoints: websecure
-    traefik.ingress.kubernetes.io/router.tls: "true"
-    cert-manager.io/cluster-issuer: "selfsigned-issuer"
 spec:
+  ingressClassName: tailscale
   tls:
     - hosts:
-        - vaultwarden.homelab.local
-      secretName: vaultwarden-tls
+        - vaultwarden
   rules:
-    - host: vaultwarden.homelab.local
+    - host: vaultwarden
       http:
         paths:
           - path: /

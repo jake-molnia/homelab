@@ -129,9 +129,6 @@ in
     ];
   };
 
-  # Docker for k3s
-  virtualisation.docker.enable = true;
-
   systemd.tmpfiles.rules = [
     "d /data/longhorn 0755 root root -"
   ];

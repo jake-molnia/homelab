@@ -3,17 +3,13 @@ kind: Ingress
 metadata:
   name: glance
   namespace: glance
-  annotations:
-    traefik.ingress.kubernetes.io/router.entrypoints: websecure
-    traefik.ingress.kubernetes.io/router.tls: "true"
-    cert-manager.io/cluster-issuer: "selfsigned-issuer"
 spec:
+  ingressClassName: tailscale
   tls:
     - hosts:
-        - glance.homelab.local
-      secretName: glance-tls
+        - glance
   rules:
-    - host: glance.homelab.local
+    - host: glance
       http:
         paths:
           - path: /

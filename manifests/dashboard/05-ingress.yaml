@@ -1,19 +1,21 @@
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: longhorn-ui
-  namespace: longhorn-system
-  annotations:
-    traefik.ingress.kubernetes.io/router.entrypoints: web
+  name: kubernetes-dashboard
+  namespace: kubernetes-dashboard
 spec:
+  ingressClassName: tailscale
+  tls:
+    - hosts:
+        - kubernetes
   rules:
-    - host: longhorn.homelab.local
+    - host: kubernetes
       http:
         paths:
           - path: /
             pathType: Prefix
             backend:
               service:
-                name: longhorn-frontend
+                name: kubernetes-dashboard
                 port:
                   number: 80

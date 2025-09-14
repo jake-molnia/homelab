@@ -265,17 +265,13 @@ kind: Ingress
 metadata:
   name: immich
   namespace: personal
-  annotations:
-    traefik.ingress.kubernetes.io/router.entrypoints: websecure
-    traefik.ingress.kubernetes.io/router.tls: "true"
-    cert-manager.io/cluster-issuer: "selfsigned-issuer"
 spec:
+  ingressClassName: tailscale
   tls:
     - hosts:
-        - immich.homelab.local
-      secretName: immich-tls
+        - immich
   rules:
-    - host: immich.homelab.local
+    - host: immich
       http:
         paths:
           - path: /
