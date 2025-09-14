@@ -1,32 +1,47 @@
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: radarr-config-pvc
+  namespace: media
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: longhorn
+  resources:
+    requests:
+      storage: 5Gi
+
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: jellyseerr
+  name: radarr
   namespace: media
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: jellyseerr
+      app: radarr
   template:
     metadata:
       labels:
-        app: jellyseerr
+        app: radarr
     spec:
       securityContext:
         fsGroup: 1000
       volumes:
         - name: config
           persistentVolumeClaim:
-            claimName: jellyseerr-config
+            claimName: radarr-config-pvc
         - name: media
           persistentVolumeClaim:
             claimName: media-shared-nfs-pvc
       containers:
-        - name: jellyseerr
-          image: ghcr.io/fallenbagel/jellyseerr:latest
+        - name: radarr
+          image: lscr.io/linuxserver/radarr:latest
           ports:
-            - containerPort: 5055
+            - containerPort: 7878
               name: http
           env:
             - name: PUID
@@ -35,11 +50,9 @@ spec:
               value: "1000"
             - name: TZ
               value: "America/New_York"
-            - name: UMASK
-              value: "002"
           volumeMounts:
             - name: config
-              mountPath: /app/config
+              mountPath: /config
             - name: media
               mountPath: /media
           resources:
@@ -49,56 +62,41 @@ spec:
             requests:
               cpu: "200m"
               memory: "256Mi"
----
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: jellyseerr-config
-  namespace: media
-spec:
-  accessModes:
-    - ReadWriteOnce
-  storageClassName: longhorn
-  resources:
-    requests:
-      storage: 1Gi
+
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: jellyseerr
+  name: radarr
   namespace: media
 spec:
   selector:
-    app: jellyseerr
+    app: radarr
   ports:
     - protocol: TCP
-      port: 5055
+      port: 7878
       targetPort: http
   type: ClusterIP
+
 ---
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: jellyseerr
+  name: radarr
   namespace: media
-  annotations:
-    traefik.ingress.kubernetes.io/router.entrypoints: websecure
-    traefik.ingress.kubernetes.io/router.tls: "true"
-    cert-manager.io/cluster-issuer: "selfsigned-issuer"
 spec:
+  ingressClassName: tailscale
   tls:
     - hosts:
-        - jellyseerr.homelab.local
-      secretName: jellyseerr-tls
+        - radarr
   rules:
-    - host: jellyseerr.homelab.local
+    - host: radarr
       http:
         paths:
           - path: /
             pathType: Prefix
             backend:
               service:
-                name: jellyseerr
+                name: radarr
                 port:
-                  number: 5055
+                  number: 7878

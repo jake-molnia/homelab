@@ -79,17 +79,13 @@ kind: Ingress
 metadata:
   name: prowlarr
   namespace: media
-  annotations:
-    traefik.ingress.kubernetes.io/router.entrypoints: websecure
-    traefik.ingress.kubernetes.io/router.tls: "true"
-    cert-manager.io/cluster-issuer: "selfsigned-issuer"
 spec:
+  ingressClassName: tailscale
   tls:
     - hosts:
-        - prowlarr.homelab.local
-      secretName: prowlarr-tls
+        - prowlarr
   rules:
-    - host: prowlarr.homelab.local
+    - host: prowlarr
       http:
         paths:
           - path: /

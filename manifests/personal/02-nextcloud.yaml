@@ -106,17 +106,13 @@ kind: Ingress
 metadata:
   name: nextcloud
   namespace: personal
-  annotations:
-    traefik.ingress.kubernetes.io/router.entrypoints: websecure
-    traefik.ingress.kubernetes.io/router.tls: "true"
-    cert-manager.io/cluster-issuer: "selfsigned-issuer"
 spec:
+  ingressClassName: tailscale
   tls:
     - hosts:
-        - nextcloud.homelab.local
-      secretName: nextcloud-tls
+        - nextcloud
   rules:
-    - host: nextcloud.homelab.local
+    - host: nextcloud
       http:
         paths:
           - path: /
