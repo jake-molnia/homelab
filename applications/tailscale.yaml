@@ -3,12 +3,26 @@ kind: Application
 metadata:
   name: tailscale-operator
   namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "10"
 spec:
   project: default
   source:
-    repoURL: https://github.com/jake-molnia/homelab
-    targetRevision: HEAD
-    path: manifests/tailscale
+    repoURL: https://pkgs.tailscale.com/helmcharts
+    chart: tailscale-operator
+    targetRevision: 1.86.5
+    helm:
+      values: |
+        # Basic operator configuration
+        operatorConfig:
+          hostname: "tailscale-operator"
+          logging: "info"
+
+        # OAuth will be provided by separate secret
+        oauth:
+          clientId: ""
+          clientSecret: ""
+
   destination:
     server: https://kubernetes.default.svc
     namespace: tailscale

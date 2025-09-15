@@ -34,7 +34,6 @@ in
       "--write-kubeconfig-mode=644"
       "--tls-san=10.10.10.50"
       "--with-node-id"
-      "--flannel-backend=none"
     ];
   };
 
