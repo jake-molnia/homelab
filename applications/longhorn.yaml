@@ -3,6 +3,8 @@ kind: Application
 metadata:
   name: longhorn-chart
   namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "10"
 spec:
   project: default
   source:
@@ -11,6 +13,10 @@ spec:
     targetRevision: 1.9.1
     helm:
       values: |
+        # CRITICAL: This fixes ArgoCD installation issues
+        preUpgradeChecker:
+          jobEnabled: false
+
         defaultSettings:
           defaultDataPath: /data/longhorn
           createDefaultDiskLabeledNodes: true
@@ -18,10 +24,6 @@ spec:
           storageOverProvisioningPercentage: 100
           storageMinimalAvailablePercentage: 25
           upgradeChecker: false
-
-        # CRITICAL: This fixes ArgoCD installation issues
-        preUpgradeChecker:
-          jobEnabled: false
 
         longhornManager:
           resources:
@@ -66,3 +68,5 @@ spec:
       selfHeal: true
     syncOptions:
       - CreateNamespace=true
+      - ServerSideApply=true
+      - SkipDryRunOnMissingResource=true
