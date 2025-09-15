@@ -2,7 +2,9 @@ apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
   name: longhorn-extras
-  namespace: longhorn-system
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "20" # Deploy after main chart
 spec:
   project: default
   source:
@@ -11,9 +13,10 @@ spec:
     path: manifests/longhorn
   destination:
     server: https://kubernetes.default.svc
-    # The resources will be deployed into this namespace
     namespace: longhorn-system
   syncPolicy:
     automated:
       prune: true
       selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
