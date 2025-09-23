@@ -5,13 +5,13 @@ metadata:
   name: postgresql
   namespace: argocd
   annotations:
-    argocd.argoproj.io/sync-wave: "5" # Deploy before everything else
+    argocd.argoproj.io/sync-wave: "5"
 spec:
   project: default
   source:
-    repoURL: oci://registry-1.docker.io/bitnamicharts
+    repoURL: https://charts.bitnami.com/bitnami
     chart: postgresql
-    targetRevision: 16.7.27
+    targetRevision: 13.2.24
     helm:
       values: |
         auth:
@@ -34,7 +34,6 @@ spec:
               cpu: "1"
               memory: "1Gi"
 
-          # Create multiple databases for different services
           initdb:
             scripts:
               01-create-databases.sql: |
@@ -66,22 +65,19 @@ spec:
                 \c immich;
                 CREATE EXTENSION IF NOT EXISTS cube;
                 CREATE EXTENSION IF NOT EXISTS earthdistance;
-                CREATE EXTENSION IF NOT EXISTS vectors;
 
-        # Enable backup
         backup:
           enabled: true
           cronjob:
-            schedule: "0 2 * * *"  # Daily at 2 AM
+            schedule: "0 2 * * *"
             storage:
               storageClass: longhorn
               size: 50Gi
 
-        # Enable metrics
         metrics:
           enabled: true
           serviceMonitor:
-            enabled: false  # Enable if you have Prometheus operator
+            enabled: false
 
         service:
           type: ClusterIP
