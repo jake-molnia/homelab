@@ -5,7 +5,7 @@ metadata:
   name: kasm-workspaces
   namespace: argocd
   annotations:
-    argocd.argojroj.io/sync-wave: "20"
+    argocd.argoproj.io/sync-wave: "20"
 spec:
   project: default
   source:
@@ -16,27 +16,28 @@ spec:
       values: |
         global:
           hostname: kasm
-        database:
-          host: "shared-postgresql.database.svc.cluster.local"
-          port: 5432
-          sslMode: "prefer"
-          database: "kasm"
-          username: "kasm"
-        ingress:
-          enabled: true
-          className: tailscale
-          hosts:
-            - host: kasm
-              paths:
-                - path: /
-                  pathType: Prefix
-          tls:
-            - hosts:
-                - kasm
-        persistentVolumeClaim:
-          uploads:
-            storageClassName: longhorn
-            size: 50Gi
+        webapp:
+          database:
+            host: "shared-postgresql.database.svc.cluster.local"
+            port: 5432
+            sslMode: "prefer"
+            database: "kasm"
+            username: "kasm"
+          ingress:
+            enabled: true
+            className: tailscale
+            hosts:
+              - host: kasm
+                paths:
+                  - path: /
+                    pathType: Prefix
+            tls:
+              - hosts:
+                  - kasm
+          persistentVolumeClaim:
+            uploads:
+              storageClassName: longhorn
+              size: 50Gi
   destination:
     server: https://kubernetes.default.svc
     namespace: kasm
