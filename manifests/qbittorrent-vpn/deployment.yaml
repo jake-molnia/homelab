@@ -41,7 +41,7 @@ spec:
                   name: mullvad-vpn-config
                   key: wireguard_addresses
             - name: SERVER_CITIES
-              value: "Amsterdam" # Change to your preferred city
+              value: "Ashburn" # Change to your preferred city
             - name: FIREWALL
               value: "on"
             - name: DOT
