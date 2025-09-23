@@ -41,7 +41,7 @@ spec:
                   name: vpn-config
                   key: wireguard_addresses
             - name: SERVER_CITIES
-              value: "Amsterdam" # Change to your preferred city
+              value: "Ashburn"
             - name: FIREWALL
               value: "on"
             - name: DOT
