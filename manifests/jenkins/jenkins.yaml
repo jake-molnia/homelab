@@ -44,18 +44,12 @@ spec:
             memory: "1Gi"
         env:
           - name: JAVA_OPTS
-            value: "-Djenkins.install.runSetupWizard=false -Xmx2g"
+            value: "-Djenkins.install.runSetupWizard=false -Djava.awt.headless=true -Xmx2g"
     plugins:
-      - name: kubernetes
-        version: "4246.v5a_12b_1fe120e"
-      - name: workflow-aggregator
-        version: "596.v8c21c963d92d"
-      - name: git
-        version: "5.4.1"
-      - name: configuration-as-code
-        version: "1810.v9b_c30a_249a_4c"
       - name: blueocean
         version: "1.27.14"
+      - name: pipeline-stage-view
+        version: "2.25"
   service:
     type: ClusterIP
     port: 8080
