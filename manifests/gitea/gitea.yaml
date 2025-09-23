@@ -81,8 +81,8 @@ spec:
             - name: GITEA__database__PASSWD
               valueFrom:
                 secretKeyRef:
-                  name: gitea-config
-                  key: database-password
+                  name: database-passwords
+                  key: gitea-password
             - name: GITEA__server__ROOT_URL
               value: "https://gitea"
             - name: GITEA__server__DOMAIN
