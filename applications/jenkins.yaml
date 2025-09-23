@@ -8,9 +8,26 @@ metadata:
 spec:
   project: default
   source:
-    repoURL: https://raw.githubusercontent.com/jenkinsci/kubernetes-operator
-    targetRevision: HEAD
-    path: deploy/crds
+    repoURL: https://raw.githubusercontent.com/jenkinsci/kubernetes-operator/master/chart
+    chart: jenkins-operator
+    targetRevision: 0.7.1
+    helm:
+      values: |
+        # Disable the default Jenkins instance - we'll create our own
+        jenkins:
+          enabled: false
+
+        operator:
+          image: virtuslab/jenkins-operator:v0.7.1
+
+        # Enable RBAC
+        rbac:
+          enable: true
+
+        # Service account for the operator
+        serviceAccount:
+          create: true
+          name: jenkins-operator
   destination:
     server: https://kubernetes.default.svc
     namespace: jenkins-operator
@@ -20,27 +37,3 @@ spec:
       selfHeal: true
     syncOptions:
       - CreateNamespace=true
-      - Replace=true
----
-apiVersion: argoproj.io/v1alpha1
-kind: Application
-metadata:
-  name: jenkins-operator-deployment
-  namespace: argocd
-  annotations:
-    argocd.argoproj.io/sync-wave: "11"
-spec:
-  project: default
-  source:
-    repoURL: https://raw.githubusercontent.com/jenkinsci/kubernetes-operator
-    targetRevision: HEAD
-    path: deploy/all-in-one-v1alpha2
-  destination:
-    server: https://kubernetes.default.svc
-    namespace: jenkins-operator
-  syncPolicy:
-    automated:
-      prune: true
-      selfHeal: true
-    syncOptions:
-      - CreateNamespace=false
