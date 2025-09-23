@@ -11,7 +11,7 @@ spec:
   source:
     repoURL: https://github.com/jake-molnia/homelab
     targetRevision: HEAD
-    path: manifests/database-config
+    path: manifests/database
   destination:
     server: https://kubernetes.default.svc
     namespace: database
