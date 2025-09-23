@@ -23,7 +23,7 @@ spec:
         - name: gluetun
           image: qmcgaw/gluetun:latest
           securityContext:
-            privileged: true
+            privileged: true # REQUIRED for routing changes
             capabilities:
               add:
                 - NET_ADMIN
@@ -106,4 +106,4 @@ spec:
             claimName: qbittorrent-downloads-pvc
         - name: media-shared
           persistentVolumeClaim:
-            claimName: media-downloads-pvc # Fixed reference
+            claimName: media-shared-nfs-pvc
