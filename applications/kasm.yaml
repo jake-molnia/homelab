@@ -16,28 +16,32 @@ spec:
       values: |
         global:
           hostname: kasm
-        webapp:
-          database:
-            host: "shared-postgresql.database.svc.cluster.local"
-            port: 5432
-            sslMode: "prefer"
-            database: "kasm"
-            username: "kasm"
-          ingress:
-            enabled: true
-            className: tailscale
-            hosts:
-              - host: kasm
-                paths:
-                  - path: /
-                    pathType: Prefix
-            tls:
-              - hosts:
-                  - kasm
-          persistentVolumeClaim:
-            uploads:
+        ingress:
+          enabled: true
+          className: tailscale
+          hosts:
+            - host: kasm
+              paths:
+                - path: /
+                  pathType: Prefix
+          tls:
+            - hosts:
+                - kasm
+        persistence:
+          enabled: true
+          # Note that the 'uploads' PVC is configured under a generic 'extra' key
+          extra:
+            - name: uploads
               storageClassName: longhorn
+              accessMode: ReadWriteOnce
               size: 50Gi
+              mountPath: /uploads
+        database:
+          host: "shared-postgresql.database.svc.cluster.local"
+          port: 5432
+          sslMode: "prefer"
+          database: "kasm"
+          username: "kasm"
   destination:
     server: https://kubernetes.default.svc
     namespace: kasm
