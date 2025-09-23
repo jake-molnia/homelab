@@ -44,9 +44,10 @@ spec:
             checkpoint_completion_target = 0.9
             random_page_cost = 1.1
             effective_io_concurrency = 200
-            listen_addresses = '*'
-            pg_hba.conf = |
-              host all all 0.0.0.0/0 md5
+            listen_addresses = '*'  # Keep this line
+
+          pgHbaConfiguration: |
+            host all all 0.0.0.0/0 md5
 
         service:
           type: ClusterIP
