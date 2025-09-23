@@ -5,7 +5,7 @@ metadata:
   name: kasm-workspaces
   namespace: argocd
   annotations:
-    argocd.argoproj.io/sync-wave: "20"
+    argocd.argojroj.io/sync-wave: "20"
 spec:
   project: default
   source:
@@ -16,48 +16,12 @@ spec:
       values: |
         global:
           hostname: kasm
-        namespace: kasm
-        postgres:
+        database:
           host: "shared-postgresql.database.svc.cluster.local"
           port: 5432
           sslMode: "prefer"
           database: "kasm"
           username: "kasm"
-        api:
-          replicaCount: 2
-          resources:
-            limits:
-              cpu: "2"
-              memory: "2Gi"
-            requests:
-              cpu: "500m"
-              memory: "512Mi"
-        manager:
-          replicaCount: 1
-          resources:
-            limits:
-              cpu: "2"
-              memory: "2Gi"
-            requests:
-              cpu: "500m"
-              memory: "512Mi"
-        share:
-          resources:
-            limits:
-              cpu: "1"
-              memory: "1Gi"
-            requests:
-              cpu: "200m"
-              memory: "256Mi"
-        guac:
-          replicaCount: 2
-          resources:
-            limits:
-              cpu: "2"
-              memory: "2Gi"
-            requests:
-              cpu: "500m"
-              memory: "512Mi"
         ingress:
           enabled: true
           className: tailscale
