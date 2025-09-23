@@ -23,8 +23,11 @@ spec:
         - name: gluetun
           image: qmcgaw/gluetun:latest
           securityContext:
+            privileged: true
             capabilities:
-              add: ["NET_ADMIN"]
+              add:
+                - NET_ADMIN
+                - SYS_MODULE
           env:
             - name: VPN_SERVICE_PROVIDER
               value: "mullvad"
@@ -46,6 +49,11 @@ spec:
               value: "on"
             - name: DOT
               value: "off"
+            # Force traffic through VPN
+            - name: FIREWALL_VPN_INPUT_PORTS
+              value: "6881"
+            - name: FIREWALL_INPUT_PORTS
+              value: "8080"
           ports:
             - containerPort: 8080
               name: qbittorrent-ui
@@ -98,49 +106,4 @@ spec:
             claimName: qbittorrent-downloads-pvc
         - name: media-shared
           persistentVolumeClaim:
-            claimName: media-shared-nfs-pvc
-
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: qbittorrent-vpn
-  namespace: media
-spec:
-  selector:
-    app: qbittorrent-vpn
-  ports:
-    - name: ui
-      port: 8080
-      targetPort: 8080
-    - name: tcp
-      port: 6881
-      targetPort: 6881
-    - name: udp
-      port: 6881
-      targetPort: 6881
-      protocol: UDP
-  type: ClusterIP
-
----
-apiVersion: networking.k8s.io/v1
-kind: Ingress
-metadata:
-  name: qbittorrent-vpn
-  namespace: media
-spec:
-  ingressClassName: tailscale
-  tls:
-    - hosts:
-        - qbittorrent
-  rules:
-    - host: qbittorrent
-      http:
-        paths:
-          - path: /
-            pathType: Prefix
-            backend:
-              service:
-                name: qbittorrent-vpn
-                port:
-                  number: 8080
+            claimName: media-downloads-pvc # Fixed reference
