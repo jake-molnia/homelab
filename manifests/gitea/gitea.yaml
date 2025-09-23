@@ -11,7 +11,7 @@ metadata:
   namespace: developer
 type: Opaque
 stringData:
-  database-host: "shared-postgresql-postgresql.database.svc.cluster.local"
+  database-host: "shared-postgresql.database.svc.cluster.local"
   database-port: "5432"
   database-name: "gitea"
   database-user: "gitea"
