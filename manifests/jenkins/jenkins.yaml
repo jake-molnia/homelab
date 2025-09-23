@@ -45,10 +45,13 @@ spec:
         env:
           - name: JAVA_OPTS
             value: "-Djenkins.install.runSetupWizard=false -Djava.awt.headless=true -Xmx2g"
-    plugins: []
+    plugins:
+      - name: configuration-as-code
+        version: "1985.vdda_32d0c4ea_b_"
+      - name: git
+        version: "5.7.0"
   service:
     type: ClusterIP
     port: 8080
   serviceAccount:
     annotations:
-      jenkins.io/operator-managed: "true"
