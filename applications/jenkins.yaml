@@ -1,74 +1,46 @@
-# applications/jenkins.yaml
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: jenkins
+  name: jenkins-operator
   namespace: argocd
   annotations:
-    argocd.argoproj.io/sync-wave: "15"
+    argocd.argoproj.io/sync-wave: "10"
 spec:
   project: default
   source:
-    repoURL: https://charts.jenkins.io
-    chart: jenkins
-    targetRevision: 5.7.12
-    helm:
-      values: |
-        controller:
-          adminUser: "admin"
-          adminPassword: "changeme123"
-
-          # Use PostgreSQL for Jenkins configuration (optional)
-          # Jenkins will still use file-based storage but can optionally use DB for some plugins
-          persistence:
-            enabled: true
-            storageClass: longhorn
-            size: 50Gi
-
-          resources:
-            limits:
-              cpu: "4"
-              memory: "4Gi"
-            requests:
-              cpu: "1"
-              memory: "1Gi"
-
-          # JVM options for better performance
-          javaOpts: "-Xms2g -Xmx3g -XX:+UseG1GC"
-
-          ingress:
-            enabled: true
-            ingressClassName: tailscale
-            hostName: jenkins
-            tls:
-              - hosts:
-                  - jenkins
-
-          serviceType: ClusterIP
-
-          installPlugins:
-            - kubernetes:4246.v5a_12b_1fe120e
-            - workflow-aggregator:596.v8c21c963d92d
-            - git:5.4.1
-            - configuration-as-code:1810.v9b_c30a_249a_4c
-            - blueocean:1.27.14
-            - postgresql-api:1.5.0  # PostgreSQL plugin for Jenkins
-
-        agent:
-          enabled: true
-          resources:
-            limits:
-              cpu: "2"
-              memory: "2Gi"
-            requests:
-              cpu: "500m"
-              memory: "512Mi"
+    repoURL: https://raw.githubusercontent.com/jenkinsci/kubernetes-operator
+    targetRevision: HEAD
+    path: deploy/crds
   destination:
     server: https://kubernetes.default.svc
-    namespace: developer
+    namespace: jenkins-operator
   syncPolicy:
     automated:
       prune: true
       selfHeal: true
     syncOptions:
       - CreateNamespace=true
+      - Replace=true
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: jenkins-operator-deployment
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "11"
+spec:
+  project: default
+  source:
+    repoURL: https://raw.githubusercontent.com/jenkinsci/kubernetes-operator
+    targetRevision: HEAD
+    path: deploy/all-in-one-v1alpha2
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: jenkins-operator
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=false

@@ -1,0 +1,22 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: jenkins-instance
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "15"
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/jake-molnia/homelab
+    targetRevision: HEAD
+    path: manifests/jenkins
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: developer
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=false

@@ -1,0 +1,133 @@
+apiVersion: jenkins.io/v1alpha2
+kind: Jenkins
+metadata:
+  name: jenkins
+  namespace: developer
+spec:
+  configurationAsCode:
+    configurations:
+      - name: jenkins-casc
+  jenkinsAPISettings:
+    authorizationStrategy: serviceAccount
+  master:
+    disableCSRFProtection: false
+    containers:
+      - name: jenkins-master
+        image: jenkins/jenkins:2.414.1-lts
+        imagePullPolicy: Always
+        livenessProbe:
+          failureThreshold: 12
+          httpGet:
+            path: /login
+            port: http
+            scheme: HTTP
+          initialDelaySeconds: 100
+          periodSeconds: 10
+          successThreshold: 1
+          timeoutSeconds: 5
+        readinessProbe:
+          failureThreshold: 10
+          httpGet:
+            path: /login
+            port: http
+            scheme: HTTP
+          initialDelaySeconds: 80
+          periodSeconds: 10
+          successThreshold: 1
+          timeoutSeconds: 1
+        resources:
+          limits:
+            cpu: 2000m
+            memory: 4Gi
+          requests:
+            cpu: 500m
+            memory: 1Gi
+    plugins:
+      - name: kubernetes
+        version: "4246.v5a_12b_1fe120e"
+      - name: workflow-aggregator
+        version: "596.v8c21c963d92d"
+      - name: git
+        version: "5.4.1"
+      - name: configuration-as-code
+        version: "1810.v9b_c30a_249a_4c"
+      - name: blueocean
+        version: "1.27.14"
+      - name: postgresql-api
+        version: "1.5.0"
+  service:
+    type: ClusterIP
+    port: 8080
+  serviceAccount:
+    annotations:
+      meta.helm.sh/release-name: jenkins
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: jenkins-casc
+  namespace: developer
+data:
+  jenkins.yaml: |
+    jenkins:
+      systemMessage: "Jenkins configured using Kubernetes Operator"
+      numExecutors: 0
+      scmCheckoutRetryCount: 2
+      mode: NORMAL
+
+      clouds:
+        - kubernetes:
+            name: "kubernetes"
+            serverUrl: "https://kubernetes.default"
+            directConnection: false
+            containerCapStr: "100"
+            maxRequestsPerHostStr: "64"
+            retentionTimeout: 5
+            connectTimeout: 10
+            readTimeout: 20
+
+            templates:
+              - name: "jenkins-agent"
+                namespace: "developer"
+                nodeUsageMode: NORMAL
+                containers:
+                  - name: "jnlp"
+                    image: "jenkins/inbound-agent:latest"
+                    workingDir: "/home/jenkins/agent"
+                    resourceRequestCpu: "100m"
+                    resourceRequestMemory: "256Mi"
+                    resourceLimitCpu: "500m"
+                    resourceLimitMemory: "512Mi"
+
+    unclassified:
+      globalLibraries:
+        libraries:
+          - name: "shared-library"
+            defaultVersion: "main"
+            retriever:
+              modernSCM:
+                scm:
+                  git:
+                    remote: "https://gitea/shared-library.git"
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: jenkins
+  namespace: developer
+spec:
+  ingressClassName: tailscale
+  tls:
+    - hosts:
+        - jenkins
+  rules:
+    - host: jenkins
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: jenkins-operator-http-jenkins
+                port:
+                  number: 8080
