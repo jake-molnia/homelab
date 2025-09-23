@@ -21,12 +21,13 @@ spec:
             JupyterHub:
               authenticator_class: dummy
               admin_access: true
-
-          persistence:
-            type: dynamic
-            storageClass: longhorn
-            capacity: 10Gi
-
+          db:
+            type: sqlite-pvc
+            pvc:
+              storageClassName: longhorn
+              accessModes:
+                - ReadWriteOnce
+              storage: 10Gi
           resources:
             limits:
               cpu: "2"
@@ -34,31 +35,25 @@ spec:
             requests:
               cpu: "500m"
               memory: "512Mi"
-
         proxy:
           service:
             type: ClusterIP
-
           https:
             enabled: false
-
         singleuser:
           image:
             name: quay.io/jupyterhub/k8s-singleuser-sample
             tag: "3.3.8"
-
           storage:
-            type: dynamic
-            storageClass: longhorn
+            dynamic:
+              storageClass: longhorn
             capacity: 10Gi
-
           cpu:
             limit: 2
             guarantee: 0.5
           memory:
             limit: 2G
             guarantee: 512M
-
         ingress:
           enabled: true
           ingressClassName: tailscale
