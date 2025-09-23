@@ -12,6 +12,12 @@ spec:
         - name: postgres-setup
           image: postgres:15
           env:
+            - name: PGPASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: database-passwords
+                  key: postgres-admin-password
+
             - name: NEXTCLOUD_PASSWORD
               valueFrom:
                 secretKeyRef:
