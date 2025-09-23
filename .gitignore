@@ -33,3 +33,4 @@ node_modules/
 ######## CUSTOME ################
 .env
 manifests/tailscale/oauth-secret.yaml
+manifests/database/database-secrets.yaml
