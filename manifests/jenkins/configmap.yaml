@@ -1,0 +1,39 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: jenkins-casc
+  namespace: jenkins-operator
+data:
+  jenkins.yaml: |
+    jenkins:
+      systemMessage: "Jenkins configured using Kubernetes Operator"
+      numExecutors: 2
+      mode: NORMAL
+
+      clouds:
+        - kubernetes:
+            name: "kubernetes"
+            serverUrl: "https://kubernetes.default"
+            namespace: "jenkins-operator"
+            containerCapStr: "10"
+            maxRequestsPerHostStr: "32"
+            templates:
+              - name: "jenkins-agent"
+                namespace: "jenkins-operator"
+                containers:
+                  - name: "jnlp"
+                    image: "jenkins/inbound-agent:latest"
+                    workingDir: "/home/jenkins/agent"
+                    resourceRequestCpu: "100m"
+                    resourceRequestMemory: "256Mi"
+                    resourceLimitCpu: "500m"
+                    resourceLimitMemory: "512Mi"
+
+    unclassified:
+      gitSCM:
+        globalConfigName: "jenkins"
+        globalConfigEmail: "jenkins@homelab.local"
+
+    security:
+      globalJobDslSecurityConfiguration:
+        useScriptSecurity: false

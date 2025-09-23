@@ -1,0 +1,45 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: jenkins-tailscale
+  namespace: jenkins-operator
+spec:
+  ingressClassName: tailscale
+  tls:
+    - hosts:
+        - jenkins
+  rules:
+    - host: jenkins
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: jenkins-http
+                port:
+                  number: 8080
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: jenkins-cloudflare
+  namespace: jenkins-operator
+  annotations:
+    nginx.ingress.kubernetes.io/proxy-body-size: "0"
+spec:
+  ingressClassName: cloudflare-tunnel
+  tls:
+    - hosts:
+        - jenkins-external
+  rules:
+    - host: jenkins-external
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: jenkins-http
+                port:
+                  number: 8080

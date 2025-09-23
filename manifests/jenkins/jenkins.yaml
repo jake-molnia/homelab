@@ -1,0 +1,64 @@
+apiVersion: jenkins.io/v1alpha2
+kind: Jenkins
+metadata:
+  name: jenkins
+  namespace: jenkins-operator
+spec:
+  configurationAsCode:
+    configurations:
+      - name: jenkins-casc
+  jenkinsAPISettings:
+    authorizationStrategy: serviceAccount
+  master:
+    disableCSRFProtection: false
+    containers:
+      - name: jenkins-master
+        image: jenkins/jenkins:2.414.1-lts
+        imagePullPolicy: Always
+        livenessProbe:
+          failureThreshold: 12
+          httpGet:
+            path: /login
+            port: http
+            scheme: HTTP
+          initialDelaySeconds: 120
+          periodSeconds: 30
+          successThreshold: 1
+          timeoutSeconds: 10
+        readinessProbe:
+          failureThreshold: 10
+          httpGet:
+            path: /login
+            port: http
+            scheme: HTTP
+          initialDelaySeconds: 80
+          periodSeconds: 10
+          successThreshold: 1
+          timeoutSeconds: 5
+        resources:
+          limits:
+            cpu: "2"
+            memory: "4Gi"
+          requests:
+            cpu: "500m"
+            memory: "1Gi"
+        env:
+          - name: JAVA_OPTS
+            value: "-Djenkins.install.runSetupWizard=false -Xmx2g"
+    plugins:
+      - name: kubernetes
+        version: "4246.v5a_12b_1fe120e"
+      - name: workflow-aggregator
+        version: "596.v8c21c963d92d"
+      - name: git
+        version: "5.4.1"
+      - name: configuration-as-code
+        version: "1810.v9b_c30a_249a_4c"
+      - name: blueocean
+        version: "1.27.14"
+  service:
+    type: ClusterIP
+    port: 8080
+  serviceAccount:
+    annotations:
+      jenkins.io/operator-managed: "true"

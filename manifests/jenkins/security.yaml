@@ -1,0 +1,55 @@
+# Network policy to restrict access to Jenkins
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: jenkins-security
+  namespace: jenkins-operator
+spec:
+  podSelector:
+    matchLabels:
+      app: jenkins-master
+  policyTypes:
+    - Ingress
+  ingress:
+    # Allow Cloudflare tunnel access
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              name: cloudflare-tunnel
+      ports:
+        - protocol: TCP
+          port: 8080
+    # Allow Tailscale access (internal)
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              name: tailscale
+      ports:
+        - protocol: TCP
+          port: 8080
+    # Allow same namespace (for service discovery and agents)
+    - from:
+        - namespaceSelector: {}
+          podSelector: {}
+      ports:
+        - protocol: TCP
+          port: 8080
+        - protocol: TCP
+          port: 50000
+
+---
+# ServiceMonitor for monitoring
+apiVersion: v1
+kind: Service
+metadata:
+  name: jenkins-metrics
+  namespace: jenkins-operator
+  labels:
+    monitoring: "true"
+spec:
+  selector:
+    app: jenkins-master
+  ports:
+    - name: metrics
+      port: 8080
+      targetPort: 8080
