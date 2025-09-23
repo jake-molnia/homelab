@@ -13,7 +13,7 @@ spec:
     path: manifests/jenkins
   destination:
     server: https://kubernetes.default.svc
-    namespace: developer
+    namespace: jenkins-operator
   syncPolicy:
     automated:
       prune: true
