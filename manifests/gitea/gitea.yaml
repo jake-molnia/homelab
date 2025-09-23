@@ -84,7 +84,7 @@ spec:
                   name: database-passwords
                   key: gitea-password
             - name: GITEA__server__ROOT_URL
-              value: "https://gitea"
+              value: "https://gitea.mermaid-canopus.ts.net/"
             - name: GITEA__server__DOMAIN
               value: "gitea"
             - name: GITEA__server__SSH_PORT
