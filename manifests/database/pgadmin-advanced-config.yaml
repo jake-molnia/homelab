@@ -1,0 +1,163 @@
+# manifests/database/pgadmin-advanced-config.yaml
+# Advanced pgAdmin deployment with server auto-discovery
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pgadmin-enhanced
+  namespace: database
+  labels:
+    app: pgadmin-enhanced
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: pgadmin-enhanced
+  template:
+    metadata:
+      labels:
+        app: pgadmin-enhanced
+    spec:
+      securityContext:
+        fsGroup: 5050
+      initContainers:
+        # Init container to set up server configurations
+        - name: pgadmin-init
+          image: dpage/pgadmin4:latest
+          command: ["/bin/sh"]
+          args:
+            - -c
+            - |
+              echo "Setting up pgAdmin server configurations..."
+              mkdir -p /var/lib/pgadmin/storage/admin_homelab.local
+
+              # Create pgpass file for automatic password authentication
+              cat > /var/lib/pgadmin/storage/admin_homelab.local/pgpass <<EOF
+              shared-postgresql.database.svc.cluster.local:5432:*:postgres:homelab_admin_password
+              shared-postgresql.database.svc.cluster.local:5432:*:nextcloud:nextcloud_password
+              shared-postgresql.database.svc.cluster.local:5432:*:gitea:gitea_password
+              shared-postgresql.database.svc.cluster.local:5432:*:immich:immich_password
+              shared-postgresql.database.svc.cluster.local:5432:*:kasm:kasm_password
+              shared-postgresql.database.svc.cluster.local:5432:*:vaultwarden:vaultwarden_password
+              shared-postgresql.database.svc.cluster.local:5432:*:jenkins:jenkins_password
+              EOF
+
+              chmod 600 /var/lib/pgadmin/storage/admin_homelab.local/pgpass
+              chown -R 5050:5050 /var/lib/pgadmin/storage/
+
+              echo "pgAdmin initialization complete!"
+          volumeMounts:
+            - name: pgadmin-data
+              mountPath: /var/lib/pgadmin
+          securityContext:
+            runAsUser: 0 # Need root for chown
+      containers:
+        - name: pgadmin
+          image: dpage/pgadmin4:latest
+          env:
+            - name: PGADMIN_DEFAULT_EMAIL
+              value: "admin@homelab.local"
+            - name: PGADMIN_DEFAULT_PASSWORD
+              value: "pgadmin_admin_password"
+            - name: PGADMIN_CONFIG_SERVER_MODE
+              value: "False"
+            - name: PGADMIN_CONFIG_MASTER_PASSWORD_REQUIRED
+              value: "False"
+            - name: PGADMIN_CONFIG_UPGRADE_CHECK_ENABLED
+              value: "False"
+          ports:
+            - containerPort: 80
+              name: http
+          volumeMounts:
+            - name: pgadmin-data
+              mountPath: /var/lib/pgadmin
+            - name: servers-config
+              mountPath: /pgadmin4/servers.json
+              subPath: servers.json
+            - name: preferences-config
+              mountPath: /pgadmin4/preferences.json
+              subPath: preferences.json
+          resources:
+            limits:
+              cpu: "1"
+              memory: "1Gi"
+            requests:
+              cpu: "200m"
+              memory: "256Mi"
+          securityContext:
+            runAsUser: 5050
+            runAsGroup: 5050
+            allowPrivilegeEscalation: false
+          livenessProbe:
+            httpGet:
+              path: /misc/ping
+              port: 80
+            initialDelaySeconds: 30
+            periodSeconds: 30
+          readinessProbe:
+            httpGet:
+              path: /misc/ping
+              port: 80
+            initialDelaySeconds: 15
+            periodSeconds: 15
+      volumes:
+        - name: pgadmin-data
+          persistentVolumeClaim:
+            claimName: pgadmin-enhanced-pvc
+        - name: servers-config
+          configMap:
+            name: pgadmin-servers-config
+        - name: preferences-config
+          configMap:
+            name: pgadmin-preferences
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: pgadmin-enhanced-pvc
+  namespace: database
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: longhorn
+  resources:
+    requests:
+      storage: 10Gi
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: pgadmin-enhanced
+  namespace: database
+spec:
+  selector:
+    app: pgadmin-enhanced
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 80
+  type: ClusterIP
+
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: pgadmin-enhanced
+  namespace: database
+spec:
+  ingressClassName: tailscale
+  tls:
+    - hosts:
+        - pgadmin
+  rules:
+    - host: pgadmin
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: pgadmin-enhanced
+                port:
+                  number: 80

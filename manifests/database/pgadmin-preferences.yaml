@@ -1,0 +1,33 @@
+# manifests/database/pgadmin-preferences.yaml
+# pgAdmin UI preferences for better user experience
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: pgadmin-preferences
+  namespace: database
+data:
+  preferences.json: |
+    {
+      "misc": {
+        "user_interface": {
+          "theme": "dark",
+          "show_splash_screen": false
+        }
+      },
+      "browser": {
+        "show_system_objects": false,
+        "show_node_counts": true
+      },
+      "sqleditor": {
+        "font_size": "1.2",
+        "tab_size": 4,
+        "line_wrapping": true,
+        "auto_commit": false,
+        "auto_rollback": true
+      },
+      "dashboards": {
+        "show_graphs": true,
+        "show_activity": true,
+        "refresh_rate": 5
+      }
+    }

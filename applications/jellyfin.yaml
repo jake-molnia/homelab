@@ -1,0 +1,61 @@
+# applications/jellyfin.yaml
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: jellyfin
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "15"
+spec:
+  project: default
+  source:
+    repoURL: https://jellyfin.github.io/jellyfin-helm
+    chart: jellyfin
+    targetRevision: 2.3.0
+    helm:
+      values: |
+        image:
+          tag: "latest"
+
+        persistence:
+          config:
+            enabled: true
+            storageClass: longhorn
+            size: 20Gi
+          media:
+            enabled: true
+            existingClaim: jellyfin-media-pvc
+          cache:
+            enabled: true
+            storageClass: longhorn
+            size: 100Gi
+
+        resources:
+          limits:
+            cpu: "8"
+            memory: "8Gi"
+          requests:
+            cpu: "2"
+            memory: "2Gi"
+
+        ingress:
+          main:
+            enabled: true
+            ingressClassName: tailscale
+            hosts:
+              - host: jellyfin
+                paths:
+                  - path: /
+                    pathType: Prefix
+            tls:
+              - hosts:
+                  - jellyfin
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: media
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true

@@ -1,0 +1,23 @@
+# applications/servarr.yaml
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: servarr-stack
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "15"
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/jake-molnia/homelab
+    targetRevision: HEAD
+    path: manifests/servarr
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: media
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true

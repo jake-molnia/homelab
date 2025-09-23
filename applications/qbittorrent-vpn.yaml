@@ -1,0 +1,86 @@
+# applications/qbittorrent-vpn.yaml
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: qbittorrent-vpn
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "15"
+spec:
+  project: default
+  source:
+    repoURL: https://charts.gabe565.com
+    chart: qbittorrent
+    targetRevision: 0.4.1
+    helm:
+      values: |
+        env:
+          TZ: "America/New_York"
+          WEBUI_PORT: "8080"
+
+        persistence:
+          config:
+            enabled: true
+            storageClass: longhorn
+            size: 10Gi
+          downloads:
+            enabled: true
+            existingClaim: qbittorrent-downloads-pvc
+
+        resources:
+          limits:
+            cpu: "4"
+            memory: "4Gi"
+          requests:
+            cpu: "1"
+            memory: "1Gi"
+
+        ingress:
+          main:
+            enabled: true
+            ingressClassName: tailscale
+            hosts:
+              - host: qbittorrent
+                paths:
+                  - path: /
+                    pathType: Prefix
+            tls:
+              - hosts:
+                  - qbittorrent
+
+        # VPN Sidecar with Gluetun
+        additionalContainers:
+          gluetun:
+            image: qmcgaw/gluetun:latest
+            securityContext:
+              capabilities:
+                add: ["NET_ADMIN"]
+            env:
+              - name: VPN_SERVICE_PROVIDER
+                value: "mullvad"
+              - name: VPN_TYPE
+                value: "wireguard"
+              - name: WIREGUARD_PRIVATE_KEY
+                valueFrom:
+                  secretKeyRef:
+                    name: vpn-config
+                    key: wireguard_private_key
+              - name: WIREGUARD_ADDRESSES
+                valueFrom:
+                  secretKeyRef:
+                    name: vpn-config
+                    key: wireguard_addresses
+              - name: SERVER_CITIES
+                value: "Amsterdam"
+            ports:
+              - containerPort: 8000
+                name: gluetun-http
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: media
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true

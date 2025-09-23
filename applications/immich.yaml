@@ -1,0 +1,86 @@
+# applications/immich.yaml
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: immich
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "15"
+spec:
+  project: default
+  source:
+    repoURL: oci://ghcr.io/immich-app/immich-charts
+    chart: immich
+    targetRevision: 0.9.3
+    helm:
+      values: |
+        env:
+          TZ: "America/New_York"
+
+        image:
+          tag: v1.119.0
+
+        immich:
+          persistence:
+            library:
+              existingClaim: immich-library-pvc
+
+        server:
+          enabled: true
+          ingress:
+            main:
+              enabled: true
+              ingressClassName: tailscale
+              hosts:
+                - host: immich
+                  paths:
+                    - path: /
+                      pathType: Prefix
+              tls:
+                - hosts:
+                    - immich
+
+        machine-learning:
+          enabled: true
+          persistence:
+            cache:
+              enabled: true
+              storageClass: longhorn
+              size: 10Gi
+
+        postgresql:
+          enabled: true
+          image:
+            repository: tensorchord/pgvecto-rs
+            tag: pg14-v0.2.0
+          global:
+            postgresql:
+              auth:
+                username: immich
+                database: immich
+                password: immich
+          primary:
+            persistence:
+              enabled: true
+              storageClass: longhorn
+              size: 50Gi
+
+        redis:
+          enabled: true
+          architecture: standalone
+          auth:
+            enabled: false
+          master:
+            persistence:
+              enabled: true
+              storageClass: longhorn
+              size: 5Gi
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: immich
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true

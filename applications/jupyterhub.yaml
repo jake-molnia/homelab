@@ -1,0 +1,78 @@
+# applications/jupyterhub.yaml
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: jupyterhub
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "15"
+spec:
+  project: default
+  source:
+    repoURL: https://hub.jupyter.org/helm-chart/
+    chart: jupyterhub
+    targetRevision: 3.3.8
+    helm:
+      values: |
+        hub:
+          config:
+            DummyAuthenticator:
+              password: changeme123
+            JupyterHub:
+              authenticator_class: dummy
+              admin_access: true
+
+          persistence:
+            type: dynamic
+            storageClass: longhorn
+            capacity: 10Gi
+
+          resources:
+            limits:
+              cpu: "2"
+              memory: "2Gi"
+            requests:
+              cpu: "500m"
+              memory: "512Mi"
+
+        proxy:
+          service:
+            type: ClusterIP
+
+          https:
+            enabled: false
+
+        singleuser:
+          image:
+            name: quay.io/jupyterhub/k8s-singleuser-sample
+            tag: "3.3.8"
+
+          storage:
+            type: dynamic
+            storageClass: longhorn
+            capacity: 10Gi
+
+          cpu:
+            limit: 2
+            guarantee: 0.5
+          memory:
+            limit: 2G
+            guarantee: 512M
+
+        ingress:
+          enabled: true
+          ingressClassName: tailscale
+          hosts:
+            - jupyter
+          tls:
+            - hosts:
+                - jupyter
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: developer
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
