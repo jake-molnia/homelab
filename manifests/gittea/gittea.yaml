@@ -1,0 +1,148 @@
+# Custom Gitea deployment without problematic Helm chart
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: developer
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: gitea-config
+  namespace: developer
+type: Opaque
+stringData:
+  database-host: "shared-postgresql-postgresql.database.svc.cluster.local"
+  database-port: "5432"
+  database-name: "gitea"
+  database-user: "gitea"
+  database-password: "gitea_password"
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: gitea-shared-storage
+  namespace: developer
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: longhorn
+  resources:
+    requests:
+      storage: 50Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: gitea
+  namespace: developer
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: gitea
+  template:
+    metadata:
+      labels:
+        app: gitea
+    spec:
+      containers:
+        - name: gitea
+          image: gitea/gitea:1.22.2-rootless
+          ports:
+            - containerPort: 3000
+              name: http
+            - containerPort: 2222
+              name: ssh
+          env:
+            - name: GITEA__database__DB_TYPE
+              value: "postgres"
+            - name: GITEA__database__HOST
+              valueFrom:
+                secretKeyRef:
+                  name: gitea-config
+                  key: database-host
+            - name: GITEA__database__PORT
+              valueFrom:
+                secretKeyRef:
+                  name: gitea-config
+                  key: database-port
+            - name: GITEA__database__NAME
+              valueFrom:
+                secretKeyRef:
+                  name: gitea-config
+                  key: database-name
+            - name: GITEA__database__USER
+              valueFrom:
+                secretKeyRef:
+                  name: gitea-config
+                  key: database-user
+            - name: GITEA__database__PASSWD
+              valueFrom:
+                secretKeyRef:
+                  name: gitea-config
+                  key: database-password
+            - name: GITEA__server__ROOT_URL
+              value: "https://gitea"
+            - name: GITEA__server__DOMAIN
+              value: "gitea"
+            - name: GITEA__server__SSH_PORT
+              value: "22"
+            - name: GITEA_ADMIN_USERNAME
+              value: "admin"
+            - name: GITEA_ADMIN_PASSWORD
+              value: "changeme123"
+          volumeMounts:
+            - name: data
+              mountPath: /data
+          resources:
+            limits:
+              cpu: "2"
+              memory: "2Gi"
+            requests:
+              cpu: "500m"
+              memory: "512Mi"
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: gitea-shared-storage
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: gitea
+  namespace: developer
+spec:
+  selector:
+    app: gitea
+  ports:
+    - name: http
+      port: 3000
+      targetPort: 3000
+    - name: ssh
+      port: 2222
+      targetPort: 2222
+  type: ClusterIP
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: gitea
+  namespace: developer
+spec:
+  ingressClassName: tailscale
+  tls:
+    - hosts:
+        - gitea
+  rules:
+    - host: gitea
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: gitea
+                port:
+                  number: 3000

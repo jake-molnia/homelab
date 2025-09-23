@@ -1,4 +1,4 @@
-# applications/gitea.yaml - Updated to use shared DB
+# applications/gitea.yaml
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
@@ -9,55 +9,9 @@ metadata:
 spec:
   project: default
   source:
-    repoURL: https://dl.gitea.com/charts/
-    chart: gitea
-    targetRevision: 10.4.1
-    helm:
-      values: |
-        # DISABLE built-in PostgreSQL
-        postgresql:
-          enabled: false
-
-        gitea:
-          admin:
-            username: "admin"
-            password: "changeme123"
-            email: "admin@homelab.local"
-          config:
-            server:
-              ROOT_URL: "https://gitea"
-              DOMAIN: "gitea"
-            database:
-              DB_TYPE: "postgres"
-              HOST: "shared-postgresql-postgresql.database.svc.cluster.local:5432"
-              NAME: "gitea"
-              USER: "gitea"
-              PASSWD: "gitea_password"
-
-        persistence:
-          enabled: true
-          storageClass: longhorn
-          size: 50Gi
-
-        ingress:
-          enabled: true
-          className: tailscale
-          hosts:
-            - host: gitea
-              paths:
-                - path: /
-                  pathType: Prefix
-          tls:
-            - hosts:
-                - gitea
-
-        resources:
-          limits:
-            cpu: "2"
-            memory: "2Gi"
-          requests:
-            cpu: "500m"
-            memory: "512Mi"
+    repoURL: https://github.com/jake-molnia/homelab
+    targetRevision: HEAD
+    path: manifests/gitea
   destination:
     server: https://kubernetes.default.svc
     namespace: developer
