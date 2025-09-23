@@ -1,0 +1,58 @@
+# manifests/qbittorrent-vpn/network-policy.yaml
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: qbittorrent-vpn-policy
+  namespace: media
+spec:
+  podSelector:
+    matchLabels:
+      app: qbittorrent-vpn
+  policyTypes:
+    - Egress
+    - Ingress
+  ingress:
+    # Allow Tailscale access for web UI
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              name: tailscale
+      ports:
+        - protocol: TCP
+          port: 8080
+    # Allow same namespace access
+    - from:
+        - namespaceSelector: {}
+          podSelector: {}
+      ports:
+        - protocol: TCP
+          port: 8080
+        - protocol: TCP
+          port: 6881
+        - protocol: UDP
+          port: 6881
+  egress:
+    # Allow DNS resolution
+    - to: []
+      ports:
+        - protocol: UDP
+          port: 53
+        - protocol: TCP
+          port: 53
+    # Allow Kubernetes API access
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              name: kube-system
+      ports:
+        - protocol: TCP
+          port: 443
+    # Allow VPN traffic (Mullvad WireGuard uses port 51820)
+    - to: []
+      ports:
+        - protocol: UDP
+          port: 51820
+    # Allow internal cluster communication
+    - to:
+        - podSelector: {}
+    # Block all other egress (forces traffic through VPN)

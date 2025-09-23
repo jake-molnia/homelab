@@ -1,0 +1,141 @@
+# manifests/qbittorrent-vpn/deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: qbittorrent-vpn
+  namespace: media
+  labels:
+    app: qbittorrent-vpn
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: qbittorrent-vpn
+  template:
+    metadata:
+      labels:
+        app: qbittorrent-vpn
+    spec:
+      containers:
+        # Gluetun VPN sidecar container
+        - name: gluetun
+          image: qmcgaw/gluetun:latest
+          securityContext:
+            capabilities:
+              add: ["NET_ADMIN"]
+          env:
+            - name: VPN_SERVICE_PROVIDER
+              value: "mullvad"
+            - name: VPN_TYPE
+              value: "wireguard"
+            - name: WIREGUARD_PRIVATE_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: mullvad-vpn-config
+                  key: wireguard_private_key
+            - name: WIREGUARD_ADDRESSES
+              valueFrom:
+                secretKeyRef:
+                  name: mullvad-vpn-config
+                  key: wireguard_addresses
+            - name: SERVER_CITIES
+              value: "Amsterdam" # Change to your preferred city
+            - name: FIREWALL
+              value: "on"
+            - name: DOT
+              value: "off"
+          ports:
+            - containerPort: 8080
+              name: qbittorrent-ui
+            - containerPort: 6881
+              name: qbittorrent-tcp
+            - containerPort: 6881
+              protocol: UDP
+              name: qbittorrent-udp
+          resources:
+            limits:
+              cpu: "500m"
+              memory: "512Mi"
+            requests:
+              cpu: "100m"
+              memory: "128Mi"
+
+        # qBittorrent container sharing network with Gluetun
+        - name: qbittorrent
+          image: lscr.io/linuxserver/qbittorrent:latest
+          env:
+            - name: PUID
+              value: "1000"
+            - name: PGID
+              value: "1000"
+            - name: TZ
+              value: "America/New_York"
+            - name: WEBUI_PORT
+              value: "8080"
+          volumeMounts:
+            - name: config
+              mountPath: /config
+            - name: downloads
+              mountPath: /downloads
+          resources:
+            limits:
+              cpu: "4"
+              memory: "4Gi"
+            requests:
+              cpu: "1"
+              memory: "1Gi"
+
+      volumes:
+        - name: config
+          persistentVolumeClaim:
+            claimName: qbittorrent-config-pvc
+        - name: downloads
+          persistentVolumeClaim:
+            claimName: qbittorrent-downloads-pvc
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: qbittorrent-vpn
+  namespace: media
+spec:
+  selector:
+    app: qbittorrent-vpn
+  ports:
+    - name: ui
+      port: 8080
+      targetPort: 8080
+    - name: tcp
+      port: 6881
+      targetPort: 6881
+    - name: udp
+      port: 6881
+      targetPort: 6881
+      protocol: UDP
+  type: ClusterIP
+
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: qbittorrent-vpn
+  namespace: media
+spec:
+  ingressClassName: tailscale
+  tls:
+    - hosts:
+        - qbittorrent
+  rules:
+    - host: qbittorrent
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: qbittorrent-vpn
+                port:
+                  number: 8080
