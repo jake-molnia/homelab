@@ -45,11 +45,7 @@ spec:
         env:
           - name: JAVA_OPTS
             value: "-Djenkins.install.runSetupWizard=false -Djava.awt.headless=true -Xmx2g"
-    plugins:
-      - name: blueocean
-        version: "1.27.14"
-      - name: pipeline-stage-view
-        version: "2.25"
+    plugins: []
   service:
     type: ClusterIP
     port: 8080
