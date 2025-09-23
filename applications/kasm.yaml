@@ -9,25 +9,20 @@ metadata:
 spec:
   project: default
   source:
-    repoURL: https://helm.kasmweb.com/
-    chart: kasm-single-zone
+    repoURL: https://github.com/kasmtech/kasm-helm
+    path: kasm-single-zone
+    targetRevision: release/1.17.0
     helm:
       values: |
         global:
           hostname: kasm
-
         namespace: kasm
-
-        # Use centralized PostgreSQL
         postgres:
           host: "shared-postgresql.database.svc.cluster.local"
           port: 5432
           sslMode: "prefer"
           database: "kasm"
           username: "kasm"
-          # Password will be set via secret
-
-        # Kasm component configurations
         api:
           replicaCount: 2
           resources:
@@ -37,7 +32,6 @@ spec:
             requests:
               cpu: "500m"
               memory: "512Mi"
-
         manager:
           replicaCount: 1
           resources:
@@ -47,7 +41,6 @@ spec:
             requests:
               cpu: "500m"
               memory: "512Mi"
-
         share:
           resources:
             limits:
@@ -56,7 +49,6 @@ spec:
             requests:
               cpu: "200m"
               memory: "256Mi"
-
         guac:
           replicaCount: 2
           resources:
@@ -66,8 +58,6 @@ spec:
             requests:
               cpu: "500m"
               memory: "512Mi"
-
-        # Ingress configuration for Tailscale
         ingress:
           enabled: true
           className: tailscale
@@ -79,13 +69,10 @@ spec:
           tls:
             - hosts:
                 - kasm
-
-        # Storage for uploads
         persistentVolumeClaim:
           uploads:
             storageClassName: longhorn
             size: 50Gi
-
   destination:
     server: https://kubernetes.default.svc
     namespace: kasm
