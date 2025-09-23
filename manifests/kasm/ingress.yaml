@@ -1,0 +1,22 @@
+# manifests/kasm/ingress.yaml
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: kasm-ingress
+  namespace: kasm
+spec:
+  ingressClassName: tailscale
+  tls:
+    - hosts:
+        - kasm
+  rules:
+    - host: kasm
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: kasm
+                port:
+                  number: 443

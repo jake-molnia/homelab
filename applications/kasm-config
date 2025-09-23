@@ -1,0 +1,21 @@
+# applications/kasm-config.yaml
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: kasm-config
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "21" # Run after the main kasm app
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/jake-molnia/homelab
+    targetRevision: HEAD
+    path: manifests/kasm
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: kasm
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
