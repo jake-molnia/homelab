@@ -29,10 +29,8 @@ spec:
           volumeMounts:
             - name: config
               mountPath: /config
-            - name: downloads
-              mountPath: /downloads
             - name: media
-              mountPath: /tv
+              mountPath: /media
           resources:
             limits:
               cpu: "2"
