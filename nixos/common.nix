@@ -57,12 +57,14 @@ in
   boot.kernelModules = [
     "kvm-intel"
     "virtio_balloon"
-    "iscsi_tcp" # iSCSI support for Longhorn
-    "dm-snapshot" # Device mapper for snapshots
+    "iscsi_tcp"    # iSCSI support for Longhorn
+    "dm_snapshot"  # Device mapper for snapshots
     "dm-thin-pool" # Thin provisioning
-    "nfs" # NFS support
-    "nfsv3" # NFSv3 support
+    "nfs"          # NFS support
+    "nfsv3"        # NFSv3 support
+    "dm_crypt"     # Device mapper for encryption (needed for Longhorn)
   ];
+
   boot.extraModulePackages = [ ];
 
   services = {
