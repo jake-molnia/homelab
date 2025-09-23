@@ -1,0 +1,162 @@
+# manifests/database-config/setup-job.yaml
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: postgresql-setup
+  namespace: database
+spec:
+  template:
+    spec:
+      restartPolicy: OnFailure
+      containers:
+        - name: postgres-setup
+          image: postgres:15
+          env:
+            - name: PGPASSWORD
+              value: "homelab_admin_password"
+          command:
+            - /bin/bash
+            - -c
+            - |
+              echo "Waiting for PostgreSQL to be ready..."
+              until pg_isready -h shared-postgresql-postgresql.database.svc.cluster.local -p 5432 -U postgres; do
+                sleep 5
+              done
+
+              echo "Creating databases and users..."
+              psql -h shared-postgresql-postgresql.database.svc.cluster.local -U postgres -d postgres -v ON_ERROR_STOP=1 <<EOF
+
+              -- Create databases if they don't exist
+              SELECT 'CREATE DATABASE nextcloud' WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = 'nextcloud')\gexec
+              SELECT 'CREATE DATABASE gitea' WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = 'gitea')\gexec
+              SELECT 'CREATE DATABASE immich' WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = 'immich')\gexec
+              SELECT 'CREATE DATABASE kasm' WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = 'kasm')\gexec
+              SELECT 'CREATE DATABASE vaultwarden' WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = 'vaultwarden')\gexec
+              SELECT 'CREATE DATABASE jenkins' WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = 'jenkins')\gexec
+
+              -- Create users if they don't exist
+              DO \$\$
+              BEGIN
+                IF NOT EXISTS (SELECT FROM pg_catalog.pg_roles WHERE rolname = 'nextcloud') THEN
+                  CREATE USER nextcloud WITH PASSWORD 'nextcloud_password';
+                END IF;
+                IF NOT EXISTS (SELECT FROM pg_catalog.pg_roles WHERE rolname = 'gitea') THEN
+                  CREATE USER gitea WITH PASSWORD 'gitea_password';
+                END IF;
+                IF NOT EXISTS (SELECT FROM pg_catalog.pg_roles WHERE rolname = 'immich') THEN
+                  CREATE USER immich WITH PASSWORD 'immich_password';
+                END IF;
+                IF NOT EXISTS (SELECT FROM pg_catalog.pg_roles WHERE rolname = 'kasm') THEN
+                  CREATE USER kasm WITH PASSWORD 'kasm_password';
+                END IF;
+                IF NOT EXISTS (SELECT FROM pg_catalog.pg_roles WHERE rolname = 'vaultwarden') THEN
+                  CREATE USER vaultwarden WITH PASSWORD 'vaultwarden_password';
+                END IF;
+                IF NOT EXISTS (SELECT FROM pg_catalog.pg_roles WHERE rolname = 'jenkins') THEN
+                  CREATE USER jenkins WITH PASSWORD 'jenkins_password';
+                END IF;
+              END\$\$;
+
+              -- Grant database ownership
+              ALTER DATABASE nextcloud OWNER TO nextcloud;
+              ALTER DATABASE gitea OWNER TO gitea;
+              ALTER DATABASE immich OWNER TO immich;
+              ALTER DATABASE kasm OWNER TO kasm;
+              ALTER DATABASE vaultwarden OWNER TO vaultwarden;
+              ALTER DATABASE jenkins OWNER TO jenkins;
+
+              EOF
+
+              echo "Setting up Immich extensions..."
+              psql -h shared-postgresql-postgresql.database.svc.cluster.local -U postgres -d immich -v ON_ERROR_STOP=1 <<EOF
+              CREATE EXTENSION IF NOT EXISTS cube;
+              CREATE EXTENSION IF NOT EXISTS earthdistance;
+              CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+              EOF
+
+              echo "Database setup completed successfully!"
+
+---
+# manifests/database-config/02-connection-secrets.yaml
+apiVersion: v1
+kind: Secret
+metadata:
+  name: nextcloud-db-secret
+  namespace: nextcloud
+type: Opaque
+stringData:
+  postgresql-host: "shared-postgresql-postgresql.database.svc.cluster.local"
+  postgresql-port: "5432"
+  postgresql-database: "nextcloud"
+  postgresql-username: "nextcloud"
+  postgresql-password: "nextcloud_password"
+
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: gitea-db-secret
+  namespace: developer
+type: Opaque
+stringData:
+  postgresql-host: "shared-postgresql-postgresql.database.svc.cluster.local"
+  postgresql-port: "5432"
+  postgresql-database: "gitea"
+  postgresql-username: "gitea"
+  postgresql-password: "gitea_password"
+
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: immich-db-secret
+  namespace: immich
+type: Opaque
+stringData:
+  postgresql-host: "shared-postgresql-postgresql.database.svc.cluster.local"
+  postgresql-port: "5432"
+  postgresql-database: "immich"
+  postgresql-username: "immich"
+  postgresql-password: "immich_password"
+
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: kasm-db-secret
+  namespace: kasm
+type: Opaque
+stringData:
+  postgresql-host: "shared-postgresql-postgresql.database.svc.cluster.local"
+  postgresql-port: "5432"
+  postgresql-database: "kasm"
+  postgresql-username: "kasm"
+  postgresql-password: "kasm_password"
+
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: jenkins-db-secret
+  namespace: developer
+type: Opaque
+stringData:
+  postgresql-host: "shared-postgresql-postgresql.database.svc.cluster.local"
+  postgresql-port: "5432"
+  postgresql-database: "jenkins"
+  postgresql-username: "jenkins"
+  postgresql-password: "jenkins_password"
+
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: vaultwarden-db-secret
+  namespace: vaultwarden
+type: Opaque
+stringData:
+  postgresql-host: "shared-postgresql-postgresql.database.svc.cluster.local"
+  postgresql-port: "5432"
+  postgresql-database: "vaultwarden"
+  postgresql-username: "vaultwarden"
+  postgresql-password: "vaultwarden_password"

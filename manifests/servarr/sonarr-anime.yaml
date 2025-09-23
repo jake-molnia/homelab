@@ -1,0 +1,90 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sonarr-anime
+  namespace: media
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: sonarr-anime
+  template:
+    metadata:
+      labels:
+        app: sonarr-anime
+    spec:
+      containers:
+        - name: sonarr-anime
+          image: lscr.io/linuxserver/sonarr:latest
+          env:
+            - name: PUID
+              value: "1000"
+            - name: PGID
+              value: "1000"
+            - name: TZ
+              value: "America/New_York"
+          ports:
+            - containerPort: 8989
+              name: http
+          volumeMounts:
+            - name: config
+              mountPath: /config
+            - name: downloads
+              mountPath: /downloads
+            - name: media
+              mountPath: /anime
+          resources:
+            limits:
+              cpu: "2"
+              memory: "2Gi"
+            requests:
+              cpu: "500m"
+              memory: "512Mi"
+      volumes:
+        - name: config
+          persistentVolumeClaim:
+            claimName: sonarr-anime-config-pvc
+        - name: downloads
+          persistentVolumeClaim:
+            claimName: media-downloads-pvc
+        - name: media
+          persistentVolumeClaim:
+            claimName: media-downloads-pvc
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: sonarr-anime
+  namespace: media
+spec:
+  selector:
+    app: sonarr-anime
+  ports:
+    - protocol: TCP
+      port: 8989
+      targetPort: 8989
+  type: ClusterIP
+
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: sonarr-anime
+  namespace: media
+spec:
+  ingressClassName: tailscale
+  tls:
+    - hosts:
+        - sonarr-anime
+  rules:
+    - host: sonarr-anime
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: sonarr-anime
+                port:
+                  number: 8989

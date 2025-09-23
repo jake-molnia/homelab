@@ -1,4 +1,4 @@
-# applications/immich.yaml
+# applications/immich.yaml - Updated to use shared DB
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
@@ -16,6 +16,11 @@ spec:
       values: |
         env:
           TZ: "America/New_York"
+          DB_HOSTNAME: shared-postgresql-postgresql.database.svc.cluster.local
+          DB_PORT: "5432"
+          DB_USERNAME: immich
+          DB_PASSWORD: "immich_password"
+          DB_DATABASE_NAME: immich
 
         image:
           tag: v1.119.0
@@ -48,22 +53,9 @@ spec:
               storageClass: longhorn
               size: 10Gi
 
+        # DISABLE built-in PostgreSQL
         postgresql:
-          enabled: true
-          image:
-            repository: tensorchord/pgvecto-rs
-            tag: pg14-v0.2.0
-          global:
-            postgresql:
-              auth:
-                username: immich
-                database: immich
-                password: immich
-          primary:
-            persistence:
-              enabled: true
-              storageClass: longhorn
-              size: 50Gi
+          enabled: false
 
         redis:
           enabled: true

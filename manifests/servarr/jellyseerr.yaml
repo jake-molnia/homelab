@@ -1,0 +1,78 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: jellyseerr
+  namespace: media
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: jellyseerr
+  template:
+    metadata:
+      labels:
+        app: jellyseerr
+    spec:
+      containers:
+        - name: jellyseerr
+          image: fallenbagel/jellyseerr:latest
+          env:
+            - name: LOG_LEVEL
+              value: "info"
+            - name: TZ
+              value: "America/New_York"
+          ports:
+            - containerPort: 5055
+              name: http
+          volumeMounts:
+            - name: config
+              mountPath: /app/config
+          resources:
+            limits:
+              cpu: "1"
+              memory: "1Gi"
+            requests:
+              cpu: "200m"
+              memory: "256Mi"
+      volumes:
+        - name: config
+          persistentVolumeClaim:
+            claimName: jellyseerr-config
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: jellyseerr
+  namespace: media
+spec:
+  selector:
+    app: jellyseerr
+  ports:
+    - protocol: TCP
+      port: 5055
+      targetPort: 5055
+  type: ClusterIP
+
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: jellyseerr
+  namespace: media
+spec:
+  ingressClassName: tailscale
+  tls:
+    - hosts:
+        - jellyseerr
+  rules:
+    - host: jellyseerr
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: jellyseerr
+                port:
+                  number: 5055

@@ -1,0 +1,23 @@
+# applications/postgresql-config.yaml - Database configuration app
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: postgresql-config
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "6" # Deploy after PostgreSQL
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/jake-molnia/homelab
+    targetRevision: HEAD
+    path: manifests/database-config
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: database
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=false

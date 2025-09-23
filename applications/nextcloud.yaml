@@ -1,4 +1,4 @@
-# applications/nextcloud.yaml
+# applications/nextcloud.yaml - Updated to use shared DB
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
@@ -31,19 +31,19 @@ spec:
             storageClass: longhorn
             size: 500Gi
 
+        # DISABLE built-in PostgreSQL
         postgresql:
+          enabled: false
+
+        # Use external PostgreSQL
+        externalDatabase:
           enabled: true
-          global:
-            postgresql:
-              auth:
-                username: nextcloud
-                database: nextcloud
-                password: nextcloud
-          primary:
-            persistence:
-              enabled: true
-              storageClass: longhorn
-              size: 20Gi
+          type: postgresql
+          host: shared-postgresql-postgresql.database.svc.cluster.local
+          port: 5432
+          database: nextcloud
+          username: nextcloud
+          password: "nextcloud_password"
 
         redis:
           enabled: true

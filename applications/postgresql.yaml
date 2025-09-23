@@ -1,8 +1,8 @@
-# applications/postgresql.yaml
+# applications/postgresql.yaml - Clean shared PostgreSQL
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: postgresql
+  name: shared-postgresql
   namespace: argocd
   annotations:
     argocd.argoproj.io/sync-wave: "5"
@@ -14,70 +14,36 @@ spec:
     targetRevision: 13.2.24
     helm:
       values: |
-        auth:
-          postgresPassword: "homelab_admin_password"
-          database: "homelab"
-          username: "homelab"
-          password: "homelab_user_password"
+        global:
+          postgresql:
+            auth:
+              postgresPassword: "homelab_admin_password"
+              database: "homelab"
+              username: "homelab"
+              password: "homelab_user_password"
 
         primary:
           persistence:
             enabled: true
             storageClass: longhorn
-            size: 100Gi
+            size: 200Gi
 
           resources:
             limits:
               cpu: "4"
-              memory: "4Gi"
+              memory: "8Gi"
             requests:
               cpu: "1"
-              memory: "1Gi"
+              memory: "2Gi"
 
-          initdb:
-            scripts:
-              01-create-databases.sql: |
-                -- Create databases for different services
-                CREATE DATABASE nextcloud;
-                CREATE DATABASE gitea;
-                CREATE DATABASE immich;
-                CREATE DATABASE kasm;
-                CREATE DATABASE vaultwarden;
-                CREATE DATABASE jenkins;
-
-                -- Create users for different services
-                CREATE USER nextcloud WITH PASSWORD 'nextcloud_password';
-                CREATE USER gitea WITH PASSWORD 'gitea_password';
-                CREATE USER immich WITH PASSWORD 'immich_password';
-                CREATE USER kasm WITH PASSWORD 'kasm_password';
-                CREATE USER vaultwarden WITH PASSWORD 'vaultwarden_password';
-                CREATE USER jenkins WITH PASSWORD 'jenkins_password';
-
-                -- Grant privileges
-                GRANT ALL PRIVILEGES ON DATABASE nextcloud TO nextcloud;
-                GRANT ALL PRIVILEGES ON DATABASE gitea TO gitea;
-                GRANT ALL PRIVILEGES ON DATABASE immich TO immich;
-                GRANT ALL PRIVILEGES ON DATABASE kasm TO kasm;
-                GRANT ALL PRIVILEGES ON DATABASE vaultwarden TO vaultwarden;
-                GRANT ALL PRIVILEGES ON DATABASE jenkins TO jenkins;
-
-                -- For Immich vector extension
-                \c immich;
-                CREATE EXTENSION IF NOT EXISTS cube;
-                CREATE EXTENSION IF NOT EXISTS earthdistance;
-
-        backup:
-          enabled: true
-          cronjob:
-            schedule: "0 2 * * *"
-            storage:
-              storageClass: longhorn
-              size: 50Gi
-
-        metrics:
-          enabled: true
-          serviceMonitor:
-            enabled: false
+          configuration: |
+            max_connections = 200
+            shared_buffers = 2GB
+            effective_cache_size = 6GB
+            wal_buffers = 16MB
+            checkpoint_completion_target = 0.9
+            random_page_cost = 1.1
+            effective_io_concurrency = 200
 
         service:
           type: ClusterIP
