@@ -8,7 +8,7 @@ spec:
   accessModes:
     - ReadWriteMany
   nfs:
-    server: 10.10.10.11 # Your NAS IP
+    server: 10.10.10.11
     path: /mnt/data/media
   persistentVolumeReclaimPolicy: Retain
 ---
@@ -20,6 +20,7 @@ metadata:
 spec:
   accessModes:
     - ReadWriteMany
+  storageClassName: "" # Empty string for manual binding
   resources:
     requests:
       storage: 2Ti
