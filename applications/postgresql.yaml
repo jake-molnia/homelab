@@ -17,10 +17,11 @@ spec:
         global:
           postgresql:
             auth:
-              postgresPassword: "homelab_admin_password"
-              database: "homelab"
-              username: "homelab"
-              password: "homelab_user_password"
+              # This tells the chart to use your central secret
+              existingSecret: "database-passwords"
+              # This maps the keys in your secret to what the chart expects
+              secretKeys:
+                adminPasswordKey: "postgres-admin-password"
 
         primary:
           persistence:
