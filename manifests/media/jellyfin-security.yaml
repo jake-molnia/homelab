@@ -1,0 +1,53 @@
+# Network policy to restrict access to Jellyfin
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: jellyfin-security
+  namespace: media
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: jellyfin
+  policyTypes:
+    - Ingress
+  ingress:
+    # Allow Cloudflare tunnel access
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              name: cloudflare-tunnel
+      ports:
+        - protocol: TCP
+          port: 8096
+    # Allow Tailscale access (internal)
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              name: tailscale
+      ports:
+        - protocol: TCP
+          port: 8096
+    # Allow same namespace (for service discovery)
+    - from:
+        - namespaceSelector: {}
+          podSelector: {}
+      ports:
+        - protocol: TCP
+          port: 8096
+
+---
+# ServiceMonitor for monitoring
+apiVersion: v1
+kind: Service
+metadata:
+  name: jellyfin-metrics
+  namespace: media
+  labels:
+    monitoring: "true"
+spec:
+  selector:
+    app.kubernetes.io/name: jellyfin
+  ports:
+    - name: metrics
+      port: 8096
+      targetPort: 8096
