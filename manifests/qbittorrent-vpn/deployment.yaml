@@ -33,15 +33,15 @@ spec:
             - name: WIREGUARD_PRIVATE_KEY
               valueFrom:
                 secretKeyRef:
-                  name: mullvad-vpn-config
+                  name: vpn-config
                   key: wireguard_private_key
             - name: WIREGUARD_ADDRESSES
               valueFrom:
                 secretKeyRef:
-                  name: mullvad-vpn-config
+                  name: vpn-config
                   key: wireguard_addresses
             - name: SERVER_CITIES
-              value: "Ashburn" # Change to your preferred city
+              value: "Amsterdam" # Change to your preferred city
             - name: FIREWALL
               value: "on"
             - name: DOT
@@ -79,6 +79,8 @@ spec:
               mountPath: /config
             - name: downloads
               mountPath: /downloads
+            - name: media-shared
+              mountPath: /media
           resources:
             limits:
               cpu: "4"
@@ -94,6 +96,9 @@ spec:
         - name: downloads
           persistentVolumeClaim:
             claimName: qbittorrent-downloads-pvc
+        - name: media-shared
+          persistentVolumeClaim:
+            claimName: media-shared-nfs-pvc
 
 ---
 apiVersion: v1
