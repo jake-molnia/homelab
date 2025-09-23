@@ -28,21 +28,21 @@ spec:
                 secretKeyRef:
                   name: database-passwords
                   key: gitea-password
-            # - name: IMMICH_PASSWORD
-            #   valueFrom:
-            #     secretKeyRef:
-            #       name: database-passwords
-            #       key: immich-password
-            # - name: KASM_PASSWORD
-            #   valueFrom:
-            #     secretKeyRef:
-            #       name: database-passwords
-            #       key: kasm-password
-            # - name: VAULTWARDEN_PASSWORD
-            #   valueFrom:
-            #     secretKeyRef:
-            #       name: database-passwords
-            #       key: vaultwarden-password
+            - name: IMMICH_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: database-passwords
+                  key: immich-password
+            - name: KASM_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: database-passwords
+                  key: kasm-password
+            - name: VAULTWARDEN_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: database-passwords
+                  key: vaultwarden-password
             - name: JENKINS_PASSWORD
               valueFrom:
                 secretKeyRef:
@@ -63,9 +63,9 @@ spec:
               -- Create databases if they don't exist
               SELECT 'CREATE DATABASE nextcloud' WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = 'nextcloud')\gexec
               SELECT 'CREATE DATABASE gitea' WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = 'gitea')\gexec
-              # SELECT 'CREATE DATABASE immich' WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = 'immich')\gexec
-              # SELECT 'CREATE DATABASE kasm' WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = 'kasm')\gexec
-              # SELECT 'CREATE DATABASE vaultwarden' WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = 'vaultwarden')\gexec
+              SELECT 'CREATE DATABASE immich' WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = 'immich')\gexec
+              SELECT 'CREATE DATABASE kasm' WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = 'kasm')\gexec
+              SELECT 'CREATE DATABASE vaultwarden' WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = 'vaultwarden')\gexec
               SELECT 'CREATE DATABASE jenkins' WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = 'jenkins')\gexec
 
               -- Create users if they don't exist
@@ -77,15 +77,15 @@ spec:
                 IF NOT EXISTS (SELECT FROM pg_catalog.pg_roles WHERE rolname = 'gitea') THEN
                   CREATE USER gitea WITH PASSWORD '\$GITEA_PASSWORD';
                 END IF;
-                # IF NOT EXISTS (SELECT FROM pg_catalog.pg_roles WHERE rolname = 'immich') THEN
-                #   CREATE USER immich WITH PASSWORD '\$IMMICH_PASSWORD';
-                # END IF;
-                # IF NOT EXISTS (SELECT FROM pg_catalog.pg_roles WHERE rolname = 'kasm') THEN
-                #   CREATE USER kasm WITH PASSWORD '\$KASM_PASSWORD';
-                # END IF;
-                # IF NOT EXISTS (SELECT FROM pg_catalog.pg_roles WHERE rolname = 'vaultwarden') THEN
-                #   CREATE USER vaultwarden WITH PASSWORD '\$VAULTWARDEN_PASSWORD';
-                # END IF;
+                IF NOT EXISTS (SELECT FROM pg_catalog.pg_roles WHERE rolname = 'immich') THEN
+                  CREATE USER immich WITH PASSWORD '\$IMMICH_PASSWORD';
+                END IF;
+                IF NOT EXISTS (SELECT FROM pg_catalog.pg_roles WHERE rolname = 'kasm') THEN
+                  CREATE USER kasm WITH PASSWORD '\$KASM_PASSWORD';
+                END IF;
+                IF NOT EXISTS (SELECT FROM pg_catalog.pg_roles WHERE rolname = 'vaultwarden') THEN
+                  CREATE USER vaultwarden WITH PASSWORD '\$VAULTWARDEN_PASSWORD';
+                END IF;
                 IF NOT EXISTS (SELECT FROM pg_catalog.pg_roles WHERE rolname = 'jenkins') THEN
                   CREATE USER jenkins WITH PASSWORD '\$JENKINS_PASSWORD';
                 END IF;
@@ -94,18 +94,18 @@ spec:
               -- Grant database ownership
               ALTER DATABASE nextcloud OWNER TO nextcloud;
               ALTER DATABASE gitea OWNER TO gitea;
-              # ALTER DATABASE immich OWNER TO immich;
-              # ALTER DATABASE kasm OWNER TO kasm;
-              # ALTER DATABASE vaultwarden OWNER TO vaultwarden;
+              ALTER DATABASE immich OWNER TO immich;
+              ALTER DATABASE kasm OWNER TO kasm;
+              ALTER DATABASE vaultwarden OWNER TO vaultwarden;
               ALTER DATABASE jenkins OWNER TO jenkins;
 
               EOF
 
-              # echo "Setting up Immich extensions..."
-              # psql -h shared-postgresql.database.svc.cluster.local -U postgres -d immich -v ON_ERROR_STOP=1 <<EOF
-              # CREATE EXTENSION IF NOT EXISTS cube;
-              # CREATE EXTENSION IF NOT EXISTS earthdistance;
-              # CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
-              # EOF
+              echo "Setting up Immich extensions..."
+              psql -h shared-postgresql.database.svc.cluster.local -U postgres -d immich -v ON_ERROR_STOP=1 <<EOF
+              CREATE EXTENSION IF NOT EXISTS cube;
+              CREATE EXTENSION IF NOT EXISTS earthdistance;
+              CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+              EOF
 
               echo "Database setup completed successfully!"
