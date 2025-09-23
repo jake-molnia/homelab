@@ -12,7 +12,7 @@ data:
         "1": {
           "Name": "Homelab PostgreSQL - All Databases",
           "Group": "Homelab",
-          "Host": "shared-postgresql.database.svc.cluster.local",
+          "Host": "postgresql.database.svc.cluster.local",
           "Port": 5432,
           "MaintenanceDB": "postgres",
           "Username": "postgres",
@@ -22,7 +22,7 @@ data:
         "2": {
           "Name": "Nextcloud Database",
           "Group": "Applications",
-          "Host": "shared-postgresql.database.svc.cluster.local",
+          "Host": "postgresql.database.svc.cluster.local",
           "Port": 5432,
           "MaintenanceDB": "nextcloud",
           "Username": "nextcloud",
@@ -32,7 +32,7 @@ data:
         "3": {
           "Name": "Gitea Database",
           "Group": "Applications",
-          "Host": "shared-postgresql.database.svc.cluster.local",
+          "Host": "postgresql.database.svc.cluster.local",
           "Port": 5432,
           "MaintenanceDB": "gitea",
           "Username": "gitea",
@@ -42,7 +42,7 @@ data:
         "4": {
           "Name": "Immich Database",
           "Group": "Applications",
-          "Host": "shared-postgresql.database.svc.cluster.local",
+          "Host": "postgresql.database.svc.cluster.local",
           "Port": 5432,
           "MaintenanceDB": "immich",
           "Username": "immich",
@@ -52,7 +52,7 @@ data:
         "5": {
           "Name": "Kasm Database",
           "Group": "Applications",
-          "Host": "shared-postgresql.database.svc.cluster.local",
+          "Host": "postgresql.database.svc.cluster.local",
           "Port": 5432,
           "MaintenanceDB": "kasm",
           "Username": "kasm",
@@ -62,7 +62,7 @@ data:
         "6": {
           "Name": "Vaultwarden Database",
           "Group": "Applications",
-          "Host": "shared-postgresql.database.svc.cluster.local",
+          "Host": "postgresql.database.svc.cluster.local",
           "Port": 5432,
           "MaintenanceDB": "vaultwarden",
           "Username": "vaultwarden",
@@ -72,7 +72,7 @@ data:
         "7": {
           "Name": "Jenkins Database",
           "Group": "Applications",
-          "Host": "shared-postgresql.database.svc.cluster.local",
+          "Host": "postgresql.database.svc.cluster.local",
           "Port": 5432,
           "MaintenanceDB": "jenkins",
           "Username": "jenkins",

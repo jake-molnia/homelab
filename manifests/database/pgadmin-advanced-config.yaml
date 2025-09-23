@@ -32,13 +32,13 @@ spec:
 
               # Create pgpass file for automatic password authentication
               cat > /var/lib/pgadmin/storage/admin_homelab.local/pgpass <<EOF
-              shared-postgresql.database.svc.cluster.local:5432:*:postgres:homelab_admin_password
-              shared-postgresql.database.svc.cluster.local:5432:*:nextcloud:nextcloud_password
-              shared-postgresql.database.svc.cluster.local:5432:*:gitea:gitea_password
-              shared-postgresql.database.svc.cluster.local:5432:*:immich:immich_password
-              shared-postgresql.database.svc.cluster.local:5432:*:kasm:kasm_password
-              shared-postgresql.database.svc.cluster.local:5432:*:vaultwarden:vaultwarden_password
-              shared-postgresql.database.svc.cluster.local:5432:*:jenkins:jenkins_password
+              postgresql.database.svc.cluster.local:5432:*:postgres:homelab_admin_password
+              postgresql.database.svc.cluster.local:5432:*:nextcloud:nextcloud_password
+              postgresql.database.svc.cluster.local:5432:*:gitea:gitea_password
+              postgresql.database.svc.cluster.local:5432:*:immich:immich_password
+              postgresql.database.svc.cluster.local:5432:*:kasm:kasm_password
+              postgresql.database.svc.cluster.local:5432:*:vaultwarden:vaultwarden_password
+              postgresql.database.svc.cluster.local:5432:*:jenkins:jenkins_password
               EOF
 
               chmod 600 /var/lib/pgadmin/storage/admin_homelab.local/pgpass
@@ -55,7 +55,7 @@ spec:
           image: dpage/pgadmin4:latest
           env:
             - name: PGADMIN_DEFAULT_EMAIL
-              value: "admin@homelab.local"
+              value: "jacob@molnia.net"
             - name: PGADMIN_DEFAULT_PASSWORD
               value: "pgadmin_admin_password"
             - name: PGADMIN_CONFIG_SERVER_MODE
