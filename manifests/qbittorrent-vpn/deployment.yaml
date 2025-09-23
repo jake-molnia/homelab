@@ -23,7 +23,7 @@ spec:
         - name: gluetun
           image: qmcgaw/gluetun:latest
           securityContext:
-            privileged: true # REQUIRED for routing changes
+            privileged: true
             capabilities:
               add:
                 - NET_ADMIN
@@ -107,3 +107,48 @@ spec:
         - name: media-shared
           persistentVolumeClaim:
             claimName: media-shared-nfs-pvc
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: qbittorrent-vpn
+  namespace: media
+spec:
+  selector:
+    app: qbittorrent-vpn
+  ports:
+    - name: ui
+      port: 8080
+      targetPort: 8080
+    - name: tcp
+      port: 6881
+      targetPort: 6881
+    - name: udp
+      port: 6881
+      targetPort: 6881
+      protocol: UDP
+  type: ClusterIP
+
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: qbittorrent-vpn
+  namespace: media
+spec:
+  ingressClassName: tailscale
+  tls:
+    - hosts:
+        - qbittorrent
+  rules:
+    - host: qbittorrent
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: qbittorrent-vpn
+                port:
+                  number: 8080
