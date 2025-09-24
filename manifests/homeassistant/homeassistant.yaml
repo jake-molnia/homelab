@@ -40,13 +40,17 @@ spec:
       dnsPolicy: ClusterFirstWithHostNet
       containers:
         - name: homeassistant
-          image: ghcr.io/home-assistant/home-assistant:stable
+          image: lscr.io/linuxserver/homeassistant:latest
           ports:
             - containerPort: 8123
               name: http
           env:
             - name: TZ
               value: "America/New_York"
+            - name: HASS_HTTP_USE_X_FORWARDED_FOR
+              value: "true"
+            - name: HASS_HTTP_TRUSTED_PROXY_1
+              value: "10.42.0.0/16"
           volumeMounts:
             - name: config
               mountPath: /config
