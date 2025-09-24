@@ -35,12 +35,15 @@ spec:
       labels:
         app: homeassistant
     spec:
+      # Force to run on master node (more disk space)
+      nodeSelector:
+        kubernetes.io/hostname: k3s-master
       # Enable host network for local device discovery
       hostNetwork: true
       dnsPolicy: ClusterFirstWithHostNet
       containers:
         - name: homeassistant
-          image: lscr.io/linuxserver/homeassistant:latest
+          image: ghcr.io/home-assistant/home-assistant:stable
           ports:
             - containerPort: 8123
               name: http
