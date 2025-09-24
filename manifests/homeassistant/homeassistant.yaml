@@ -40,7 +40,7 @@ spec:
       dnsPolicy: ClusterFirstWithHostNet
       containers:
         - name: homeassistant
-          image: ghcr.io/home-assistant/home-assistant:2024.9.3-alpine
+          image: lscr.io/linuxserver/homeassistant:latest
           ports:
             - containerPort: 8123
               name: http
