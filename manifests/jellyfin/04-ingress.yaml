@@ -3,8 +3,6 @@ kind: Ingress
 metadata:
   name: jellyfin
   namespace: media
-  annotations:
-    argocd.argoproj.io/tracking-id: media:/Ingress:media/jellyfin
 spec:
   ingressClassName: tailscale
   tls:
