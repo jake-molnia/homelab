@@ -17,6 +17,13 @@ spec:
         image:
           tag: "latest"
 
+        # Add security context to run as unique user
+        podSecurityContext:
+          runAsUser: 2000
+          runAsGroup: 2000
+          runAsNonRoot: true
+          fsGroup: 2000
+
         persistence:
           config:
             enabled: true

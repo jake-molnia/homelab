@@ -82,6 +82,7 @@ in
         PermitEmptyPasswords = false;
       };
     };
+    tailscale.enable = true;
   };
 
   users.users.root.openssh.authorizedKeys.keys = [
@@ -104,6 +105,7 @@ in
     util-linux # For filesystem tools
     e2fsprogs # For ext4 tools
     nfs-utils # For NFS support
+    tailscale
   ];
 
   # Network configuration
@@ -128,6 +130,7 @@ in
     ];
     allowedUDPPorts = [
       8472 # flannel VXLAN
+      41641 # tailscale
     ];
   };
 
