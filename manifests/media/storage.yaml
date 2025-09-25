@@ -1,3 +1,42 @@
+# NFS StorageClass
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: nfs
+provisioner: kubernetes.io/no-provisioner
+volumeBindingMode: WaitForFirstConsumer
+---
+# NFS PersistentVolume pointing to your NAS
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: media-shared-nfs-pv
+spec:
+  capacity:
+    storage: 10Ti
+  accessModes:
+    - ReadWriteMany
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: nfs
+  nfs:
+    server: 10.10.10.11
+    path: /mnt/data/media
+---
+# NFS PersistentVolumeClaim
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: media-shared-nfs-pvc
+  namespace: media
+spec:
+  accessModes:
+    - ReadWriteMany
+  storageClassName: nfs
+  resources:
+    requests:
+      storage: 10Ti
+  volumeName: media-shared-nfs-pv
+---
 # Longhorn PVC for ongoing downloads
 apiVersion: v1
 kind: PersistentVolumeClaim
