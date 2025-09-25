@@ -91,16 +91,17 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: homeassistant
+  name: homeassistant-local
   namespace: homeassistant
 spec:
+  type: NodePort
   selector:
     app: homeassistant
   ports:
     - name: http
       port: 8123
       targetPort: 8123
-  type: ClusterIP
+      nodePort: 30123
 ---
 apiVersion: networking.k8s.io/v1
 kind: Ingress
