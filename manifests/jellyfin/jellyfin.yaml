@@ -101,7 +101,7 @@ spec:
             claimName: jellyfin-cache
         - name: media
           persistentVolumeClaim:
-            claimName: jellyfin-media-pvc
+            claimName: media-shared-nfs-pvc
 ---
 apiVersion: v1
 kind: Service
