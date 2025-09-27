@@ -1,4 +1,4 @@
-# applications/authentik.yaml - Main Authentik Helm chart
+# applications/authentik.yaml - Fixed Authentik Helm chart
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
@@ -21,26 +21,28 @@ spec:
           error_reporting:
             enabled: false
 
-        # Environment variables for external database
-        env:
-          - name: AUTHENTIK_POSTGRESQL__HOST
-            value: "shared-postgresql-postgresql.database.svc.cluster.local"
-          - name: AUTHENTIK_POSTGRESQL__PORT
-            value: "5432"
-          - name: AUTHENTIK_POSTGRESQL__NAME
-            value: "authentik"
-          - name: AUTHENTIK_POSTGRESQL__USER
-            value: "authentik"
-          - name: AUTHENTIK_POSTGRESQL__PASSWORD
-            valueFrom:
-              secretKeyRef:
-                name: database-passwords
-                key: authentik-password
+        # Global configuration for external database
+        global:
+          env:
+            - name: AUTHENTIK_POSTGRESQL__HOST
+              value: "shared-postgresql-postgresql.database.svc.cluster.local"
+            - name: AUTHENTIK_POSTGRESQL__PORT
+              value: "5432"
+            - name: AUTHENTIK_POSTGRESQL__NAME
+              value: "authentik"
+            - name: AUTHENTIK_POSTGRESQL__USER
+              value: "authentik"
+            - name: AUTHENTIK_POSTGRESQL__PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: database-passwords
+                  key: authentik-password
 
         # Disable built-in PostgreSQL
         postgresql:
           enabled: false
 
+        # Redis configuration
         redis:
           enabled: true
           auth:
@@ -51,6 +53,7 @@ spec:
               storageClass: longhorn
               size: 5Gi
 
+        # Server configuration
         server:
           ingress:
             enabled: false  # Will be handled by authentik-config app
@@ -62,6 +65,7 @@ spec:
               cpu: "500m"
               memory: "512Mi"
 
+        # Worker configuration
         worker:
           enabled: true
           resources:
@@ -72,9 +76,11 @@ spec:
               cpu: "200m"
               memory: "256Mi"
 
+        # Disable GeoIP
         geoip:
           enabled: false
 
+        # Service Account
         serviceAccount:
           create: true
 
