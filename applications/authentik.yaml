@@ -21,23 +21,25 @@ spec:
           error_reporting:
             enabled: false
 
-        # Use external PostgreSQL
+        # Environment variables for external database
+        env:
+          - name: AUTHENTIK_POSTGRESQL__HOST
+            value: "shared-postgresql-postgresql.database.svc.cluster.local"
+          - name: AUTHENTIK_POSTGRESQL__PORT
+            value: "5432"
+          - name: AUTHENTIK_POSTGRESQL__NAME
+            value: "authentik"
+          - name: AUTHENTIK_POSTGRESQL__USER
+            value: "authentik"
+          - name: AUTHENTIK_POSTGRESQL__PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: database-passwords
+                key: authentik-password
+
+        # Disable built-in PostgreSQL
         postgresql:
           enabled: false
-
-        # External database configuration
-        externalDatabase:
-          enabled: true
-          type: postgresql
-          host: shared-postgresql-postgresql.database.svc.cluster.local
-          port: 5432
-          database: authentik
-          username: authentik
-          # Password will be provided via secret
-          passwordFrom:
-            secretKeyRef:
-              name: database-passwords
-              key: authentik-password
 
         redis:
           enabled: true
@@ -52,9 +54,23 @@ spec:
         server:
           ingress:
             enabled: false  # Will be handled by authentik-config app
+          resources:
+            limits:
+              cpu: "2"
+              memory: "2Gi"
+            requests:
+              cpu: "500m"
+              memory: "512Mi"
 
         worker:
           enabled: true
+          resources:
+            limits:
+              cpu: "1"
+              memory: "1Gi"
+            requests:
+              cpu: "200m"
+              memory: "256Mi"
 
         geoip:
           enabled: false
@@ -72,22 +88,6 @@ spec:
             enabled: true
             storageClass: longhorn
             size: 1Gi
-
-        resources:
-          server:
-            limits:
-              cpu: "2"
-              memory: "2Gi"
-            requests:
-              cpu: "500m"
-              memory: "512Mi"
-          worker:
-            limits:
-              cpu: "1"
-              memory: "1Gi"
-            requests:
-              cpu: "200m"
-              memory: "256Mi"
 
   destination:
     server: https://kubernetes.default.svc
