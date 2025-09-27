@@ -1,0 +1,22 @@
+# manifests/authentik/ingress.yaml
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: authentik
+  namespace: authentik
+spec:
+  ingressClassName: tailscale
+  tls:
+    - hosts:
+        - authentik
+  rules:
+    - host: authentik
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: authentik-server
+                port:
+                  number: 80

@@ -1,0 +1,80 @@
+# manifests/authentik/network-policy.yaml
+# Network policies for Authentik and LDAP communication
+
+---
+# Allow Jellyfin to communicate with Authentik LDAP
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: authentik-ldap-access
+  namespace: authentik
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: authentik
+  policyTypes:
+    - Ingress
+  ingress:
+    # Allow Tailscale access for web UI
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              name: tailscale
+      ports:
+        - protocol: TCP
+          port: 9000
+    # Allow Jellyfin namespace to access LDAP
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              name: media
+      ports:
+        - protocol: TCP
+          port: 389
+        - protocol: TCP
+          port: 636
+    # Allow same namespace communication
+    - from:
+        - namespaceSelector: {}
+          podSelector: {}
+      ports:
+        - protocol: TCP
+          port: 9000
+        - protocol: TCP
+          port: 389
+        - protocol: TCP
+          port: 636
+
+---
+# Network policy for media namespace to allow outbound LDAP
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: jellyfin-ldap-egress
+  namespace: media
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: jellyfin
+  policyTypes:
+    - Egress
+  egress:
+    # Allow DNS resolution
+    - to: []
+      ports:
+        - protocol: UDP
+          port: 53
+        - protocol: TCP
+          port: 53
+    # Allow LDAP communication to Authentik
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              name: authentik
+      ports:
+        - protocol: TCP
+          port: 389
+        - protocol: TCP
+          port: 636
+    # Allow all other egress (for media streaming, etc.)
+    - to: []

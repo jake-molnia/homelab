@@ -48,6 +48,11 @@ spec:
                 secretKeyRef:
                   name: database-passwords
                   key: jenkins-password
+            - name: AUTHENTIK_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: database-passwords
+                  key: authentik-password
           command:
             - /bin/bash
             - -c
@@ -67,6 +72,7 @@ spec:
               SELECT 'CREATE DATABASE kasm' WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = 'kasm')\gexec
               SELECT 'CREATE DATABASE vaultwarden' WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = 'vaultwarden')\gexec
               SELECT 'CREATE DATABASE jenkins' WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = 'jenkins')\gexec
+              SELECT 'CREATE DATABASE authentik' WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = 'authentik')\gexec
 
               -- Create users if they don't exist
               DO \$\$
@@ -89,6 +95,9 @@ spec:
                 IF NOT EXISTS (SELECT FROM pg_catalog.pg_roles WHERE rolname = 'jenkins') THEN
                   CREATE USER jenkins WITH PASSWORD '\$JENKINS_PASSWORD';
                 END IF;
+                IF NOT EXISTS (SELECT FROM pg_catalog.pg_roles WHERE rolname = 'authentik') THEN
+                  CREATE USER authentik WITH PASSWORD '\$AUTHENTIK_PASSWORD';
+                END IF;
               END\$\$;
 
               -- Grant database ownership
@@ -98,6 +107,7 @@ spec:
               ALTER DATABASE kasm OWNER TO kasm;
               ALTER DATABASE vaultwarden OWNER TO vaultwarden;
               ALTER DATABASE jenkins OWNER TO jenkins;
+              ALTER DATABASE authentik OWNER TO authentik;
 
               EOF
 

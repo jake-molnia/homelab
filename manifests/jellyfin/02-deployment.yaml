@@ -5,6 +5,9 @@ metadata:
   namespace: media
   labels:
     app.kubernetes.io/name: jellyfin
+  annotations:
+    # Ready for Authentik LDAP integration
+    authentik.io/ldap-ready: "true"
 spec:
   replicas: 1
   strategy:
@@ -16,6 +19,9 @@ spec:
     metadata:
       labels:
         app.kubernetes.io/name: jellyfin
+      annotations:
+        # Allow communication with Authentik namespace
+        authentik.io/allow-ldap: "true"
     spec:
       securityContext:
         runAsUser: 1000
@@ -30,6 +36,11 @@ spec:
           env:
             - name: TZ
               value: "America/New_York"
+            # Prepare for LDAP authentication
+            - name: JELLYFIN__AUTHENTICATION__REQUIREHTTPS
+              value: "false"
+            - name: JELLYFIN__NETWORK__ENABLEIPV6
+              value: "false"
           volumeMounts:
             - name: config
               mountPath: /config

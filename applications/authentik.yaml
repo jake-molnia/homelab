@@ -1,0 +1,97 @@
+# applications/authentik.yaml - Main Authentik Helm chart
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: authentik
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "15"
+spec:
+  project: default
+  source:
+    repoURL: https://charts.goauthentik.io
+    chart: authentik
+    targetRevision: 2025.8.3
+    helm:
+      values: |
+        authentik:
+          # Secret key for signing cookies
+          secret_key: "PleaseGenerateASecureKey-ChangeThis60CharString12345678"
+          log_level: info
+          error_reporting:
+            enabled: false
+
+        # Use external PostgreSQL
+        postgresql:
+          enabled: false
+
+        # External database configuration
+        externalDatabase:
+          enabled: true
+          type: postgresql
+          host: shared-postgresql-postgresql.database.svc.cluster.local
+          port: 5432
+          database: authentik
+          username: authentik
+          # Password will be provided via secret
+          passwordFrom:
+            secretKeyRef:
+              name: database-passwords
+              key: authentik-password
+
+        redis:
+          enabled: true
+          auth:
+            enabled: false
+          master:
+            persistence:
+              enabled: true
+              storageClass: longhorn
+              size: 5Gi
+
+        server:
+          ingress:
+            enabled: false  # Will be handled by authentik-config app
+
+        worker:
+          enabled: true
+
+        geoip:
+          enabled: false
+
+        serviceAccount:
+          create: true
+
+        volumes:
+          media:
+            storageClass: longhorn
+            size: 10Gi
+          templates:
+            storageClass: longhorn
+            size: 1Gi
+
+        resources:
+          server:
+            limits:
+              cpu: "2"
+              memory: "2Gi"
+            requests:
+              cpu: "500m"
+              memory: "512Mi"
+          worker:
+            limits:
+              cpu: "1"
+              memory: "1Gi"
+            requests:
+              cpu: "200m"
+              memory: "256Mi"
+
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: authentik
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
