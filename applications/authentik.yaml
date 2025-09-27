@@ -62,11 +62,14 @@ spec:
         serviceAccount:
           create: true
 
-        volumes:
+        # Persistent volumes for media and templates
+        persistence:
           media:
+            enabled: true
             storageClass: longhorn
             size: 10Gi
           templates:
+            enabled: true
             storageClass: longhorn
             size: 1Gi
 
