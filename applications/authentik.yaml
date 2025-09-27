@@ -25,7 +25,7 @@ spec:
         global:
           env:
             - name: AUTHENTIK_POSTGRESQL__HOST
-              value: "shared-postgresql-postgresql.database.svc.cluster.local"
+              value: "shared-postgresql.database.svc.cluster.local"
             - name: AUTHENTIK_POSTGRESQL__PORT
               value: "5432"
             - name: AUTHENTIK_POSTGRESQL__NAME
